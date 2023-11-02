@@ -2,9 +2,10 @@ import spotipy
 import spotipy.oauth2 as oauth2
 import spotipy.util as util
 from dotenv import load_dotenv
-from os import getenv as env
+from os import getenv as env, system
 from time import sleep
 import requests
+from ytmusicapi import YTMusic
 
 #functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -13,6 +14,8 @@ ytmode = 1
 trackname = 'Show'
 artistname = 'Ado'
 position_ms = 1000
+ytpassword = None
+playstate = True
 
 #constants
 prevpos = 0
@@ -43,37 +46,50 @@ class spotify():
             #filters out artist name and track name to pass to clients 
             artistname = track['item']['artists'][0]['name']
             trackname = track['item']['name']
+            totaldur = track['item']['duration_ms']
             prevpos = position_ms
             returncode = 1
-            return returncode, position_ms, artistname, trackname
+            return returncode, position_ms, artistname, trackname, totaldur
         #if user client is open and hasn't played something yet or user client is closed
         except:
             returncode = [2]
             return returncode
-    def client(trackname, artistname, offset):# if spotify is client
-        try:
-            #combines artistname and trackname to get most accurate search result
-            search_term = f"{artistname}%20{trackname}" 
-            trackid = []
-            #searches spotify for type 'track' using searchterm 
-            track = spd.search(q=search_term, limit=1, offset = 0, type='track', market='CA') # returns dict
+    def client(trackname, artistname, position_ms, playstate):# if spotify is client
+        if playstate == True:
+            try:
+                #combines artistname and trackname to get most accurate search result
+                search_term = f"{artistname}%20{trackname}" 
+                trackid = []
+                #searches spotify for type 'track' using searchterm 
+                track = spd.search(q=search_term, limit=1, offset = 0, type='track', market='CA') # returns dict
 
-            #filter dict
-            trackid = [track['tracks']['items'][0]['uri']]
-            artistname = track['tracks']['items'][0]['artists'][0]['name']
-            trackname = track['tracks']['items'][0]['name']
+                #filter dict
+                trackid = [track['tracks']['items'][0]['uri']]
+                artistname = track['tracks']['items'][0]['artists'][0]['name']
+                trackname = track['tracks']['items'][0]['name']
 
-            #passes uri of searched track + position of song in ms to start_playback
-            spu.start_playback(uris=trackid, position_ms = offset)
-            return trackid, artistname, trackname
-        except:
-            return 'An Error Occured'
+                #passes uri of searched track + position of song in ms to start_playback
+                spu.start_playback(uris=trackid, position_ms = position_ms)
+                return trackid, artistname, trackname
+            except:
+                return 'An Error Occured'
+        else:
+            spu.pause_playback
+            return 'Pause'
 class youtube():
+    def sendreq(json, ytpassword):
+        if ytpassword:
+            requests.post(url='http://localhost:9863/query', headers={f'Authorization': f'Bearer {ytpassword}'}, json=json)
+        else:
+            requests.post(url='http://localhost:9863/query', json=json)
     def host(): # if youtube client is hosting
         output = []
         while len(output) == 0: 
             try: #tries to connect to local client
-                output = requests.get(url='http://localhost:9863/query').json()
+                if ytpassword:
+                    output = requests.get(url='http://localhost:9863/query', headers={f'Authorization': 'Bearer {password}'}).json()
+                else:
+                    output = requests.get(url='http://localhost:9863/query').json()
             except requests.ConnectionError:
                 print("Connection Error. Is the client open?. Is remote control enabled in integration panel?.")
         if output['player']['hasSong'] == False: #checks if player has a song
@@ -89,11 +105,23 @@ class youtube():
             trackname = output['track']['title']
             artistname = output['track']['author']
             position_ms = output['player']['seekbarCurrentPosition']
+            totaldurS = output['track']['duration']
             returncode = 3
-            return returncode, trackname, artistname, position_ms
-    def client(): # if youtube client is client
-        print("not done yet")
-        #//TODO
+            return returncode, trackname, artistname, position_ms, totaldurS
+    def client(name, artist, position, playlist_id, playstate): # if youtube client is client
+        if playstate == True:
+            song_id = []
+            song_name = str(name + artist)
+            songs = ytmusic.search(song_name, "songs")
+            song_id.append(songs[0]['videoId'])
+            ytmusic.add_playlist_items(playlist_id, song_id, duplicates=True)
+            json = {'command': 'player-set-seekbar', 'value': f'{position/1000}'}
+            youtube.sendreq(json, ytpassword)
+            json = {'command': 'track-play'}
+            youtube.sendreq(json, ytpassword)
+        else:
+            json = {'command': 'track-pause'}
+            youtube.sendreq(json, ytpassword)
 # main logic
 while True:
     if spmode != 0: # authenticate spotify user
@@ -102,6 +130,10 @@ while True:
         scopes = 'app-remote-control streaming user-modify-playback-state user-read-currently-playing user-read-playback-state'
         token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
         spu = spotipy.Spotify(auth=token)
+    elif ytmode == 2:
+        system('.\ytmusicapi oauth')
+        ytmusic = YTMusic("oauth.json")
+        playlist_id = ytmusic.create_playlist('Youtube x Spotify Listen Along', "yippee!!")
     try:
         if spmode == 1: # if spotify is hosting
             host = spotify.host()
@@ -112,14 +144,14 @@ while True:
                 position_ms = host[1]
                 artistname = host[2]
                 trackname = host[3]
-                print(trackname, artistname, position_ms)
+                totaldurS = int(host[4])/1000
+                print(trackname, artistname, position_ms, totaldurS)
                 #broadcast these //TODO
             elif host[0] == 2:
                 print("Nothing is playing")
         elif spmode == 2: # if spotify is client
-            print(spotify.client(trackname, artistname, position_ms))
+            print(spotify.client(trackname, artistname, position_ms, playstate))
             #request these //TODO
-    
         elif ytmode == 1: # if youtube is hosting
             output = youtube.host()
              #check returncodes
@@ -133,10 +165,11 @@ while True:
                 trackname = output[1]
                 artistname = output[2]
                 position_ms = int(output[3])*1000
-                print(trackname, artistname, position_ms)
+                totaldurS = output[4]
+                print(trackname, artistname, position_ms, totaldurS)
                 #broadcast these //TODO
         elif ytmode == 2: # if youtube is client
-            print(youtube.client(trackname, artistname, position_ms))
+            youtube.client(trackname, artistname, position_ms, playlist_id, playstate)
             # request these //TODO
     except spotipy.SpotifyOauthError as e: # Refresh access token
         token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)

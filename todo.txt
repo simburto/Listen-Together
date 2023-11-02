@@ -1,5 +1,9 @@
-- s̶p̶o̶t̶i̶f̶y̶ ̶u̶s̶e̶r̶ ̶a̶u̶t̶h̶e̶n̶t̶i̶c̶a̶t̶i̶o̶n̶
-- youtube user authentication
+x spotify user auth
+x spotify hostin
+x spotify client
+? youtube user auth
+x youtube hosting
+- youtube client
 - change playstate on youtube music
 - websocket (code system to join)
 - website

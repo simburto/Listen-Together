@@ -10,7 +10,7 @@ from ytmusicapi import YTMusic
 #functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 spmode = 0 
-ytmode = 1 
+ytmode = 2 
 trackname = 'Show'
 artistname = 'Ado'
 position_ms = 1000
@@ -108,8 +108,8 @@ class youtube():
             totaldurS = output['track']['duration']
             returncode = 3
             return returncode, trackname, artistname, position_ms, totaldurS
-    def client(name, artist, position, playlist_id, playstate): # if youtube client is client
-        if playstate == True:
+    def client(name, artist, position, playlist_id, playstate, totaldurS, prevname): # if youtube client is client
+        if playstate == True and name != prevname:
             song_id = []
             song_name = str(name + artist)
             songs = ytmusic.search(song_name, "songs")
@@ -119,7 +119,7 @@ class youtube():
             youtube.sendreq(json, ytpassword)
             json = {'command': 'track-play'}
             youtube.sendreq(json, ytpassword)
-        else:
+        elif playstate == False or totaldurS == position-2:
             json = {'command': 'track-pause'}
             youtube.sendreq(json, ytpassword)
 # main logic
@@ -169,7 +169,7 @@ while True:
                 print(trackname, artistname, position_ms, totaldurS)
                 #broadcast these //TODO
         elif ytmode == 2: # if youtube is client
-            youtube.client(trackname, artistname, position_ms, playlist_id, playstate)
+            youtube.client(trackname, artistname, position_ms, playlist_id, playstate, totaldurS)
             # request these //TODO
     except spotipy.SpotifyOauthError as e: # Refresh access token
         token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)

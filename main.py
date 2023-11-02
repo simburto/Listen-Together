@@ -4,9 +4,13 @@ import spotipy.util as util
 from dotenv import load_dotenv
 from os import getenv as env
 from time import sleep
+import aioytmdesktopapi
+import aiohttp
 
 #functions needed for website
-sphost = 1 #sphost code guide: 0 = not using spotify, 1 = hosting with spotify, 2 = client with spotify
+#mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
+spmode = 0 
+ytmode = 1 
 trackname = 'Show'
 artistname = 'Ado'
 offset = 1000
@@ -18,22 +22,20 @@ load_dotenv()
 client_id = env('API_KEY')
 client_secret = env('API_SECRET')
 redirect_uri = 'https://callback.simburrito.repl.co/'
-username = input('username')
 if len(client_id) != 0 and len(client_secret) != 0:
     print(".env values imported")
 else:
     print(".env values failed to import")
     exit()
-sleep(0.01)
+
 #spd is for spotify developer access (get playlist)
 client_credentials_manager = oauth2.SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 spd = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
 
-#spu is for spotify user specific access (get user, get user-playlist)
-scopes = 'app-remote-control streaming user-modify-playback-state user-read-currently-playing user-read-playback-state'
-token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
-spu = spotipy.Spotify(auth=token)
-
+if ytmode != 0:
+    session = aiohttp.ClientSession()
+    ytmdesktop = aioytmdesktopapi.YtmDesktop(session, 'localhost:9863')
+    ytmdesktop.initialize()
 #spotify host and client logic
 class spotify():
     #return code indicates what processes need to take place
@@ -79,11 +81,27 @@ class spotify():
             return trackid, artistname, trackname
         except:
             return 'An Error Occured'
+class youtube():
+    def host(ytmdesktop):
+        ytmdesktop.update()
+        print(f"{ytmdesktop.player.has_song}")
+        print(f"{ytmdesktop.player.is_paused}")
+        print(f"{ytmdesktop.track.author}")
+        print(f"{ytmdesktop.track.title}")
+        print(f"{ytmdesktop.track.album}")
+    def client(ytmdesktop):
+        print("not done yet")
+        #//TODO
 # main logic
 while True:
-    if sphost == 1: # if spotify is hosting
+    if spmode != 0: # authenticate spotify user
+        #spu is for spotify user specific access (get user, get user-playlist)
+        username = input('username')
+        scopes = 'app-remote-control streaming user-modify-playback-state user-read-currently-playing user-read-playback-state'
+        token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
+        spu = spotipy.Spotify(auth=token)
+    if spmode == 1: # if spotify is hosting
         host = spotify.host()
-
          #check returncodes
         if host[0] == 0: 
             print('Paused')
@@ -94,5 +112,9 @@ while True:
             print(host)
         elif host[0] == 2:
             print("Nothing is playing")
-    elif sphost == 2:
+    elif spmode == 2: # if spotify is client
         print(spotify.client(trackname, artistname, offset))
+        #broadcast these //TODO
+    elif ytmode == 1: # if youtube is hosting
+        host = youtube.host(ytmdesktop)
+

@@ -4,8 +4,7 @@ import spotipy.util as util
 from dotenv import load_dotenv
 from os import getenv as env
 from time import sleep
-import aioytmdesktopapi
-import aiohttp
+import requests
 
 #functions needed for website
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -17,31 +16,21 @@ offset = 1000
 
 #constants
 prevpos = 0
+#return code indicates what processes need to take place
+returncode = 0
 
 load_dotenv()
 client_id = env('API_KEY')
 client_secret = env('API_SECRET')
 redirect_uri = 'https://callback.simburrito.repl.co/'
-if len(client_id) != 0 and len(client_secret) != 0:
-    print(".env values imported")
-else:
-    print(".env values failed to import")
-    exit()
 
 #spd is for spotify developer access (get playlist)
 client_credentials_manager = oauth2.SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 spd = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
 
-if ytmode != 0:
-    session = aiohttp.ClientSession()
-    ytmdesktop = aioytmdesktopapi.YtmDesktop(session, 'localhost:9863')
-    ytmdesktop.initialize()
 #spotify host and client logic
 class spotify():
-    #return code indicates what processes need to take place
-    returncode = 0
-    #if spotify client is hosting
-    def host():
+    def host():#if spotify client is hosting
         #gets playing track
         track = spu.current_user_playing_track()
         #if user client is open and was playing something
@@ -62,8 +51,7 @@ class spotify():
         except:
             returncode = [2]
             return returncode
-    # if spotify is client
-    def client(trackname, artistname, offset):
+    def client(trackname, artistname, offset):# if spotify is client
         try:
             #combines artistname and trackname to get most accurate search result
             search_term = f"{artistname}%20{trackname}" 
@@ -82,14 +70,29 @@ class spotify():
         except:
             return 'An Error Occured'
 class youtube():
-    def host(ytmdesktop):
-        ytmdesktop.update()
-        print(f"{ytmdesktop.player.has_song}")
-        print(f"{ytmdesktop.player.is_paused}")
-        print(f"{ytmdesktop.track.author}")
-        print(f"{ytmdesktop.track.title}")
-        print(f"{ytmdesktop.track.album}")
-    def client(ytmdesktop):
+    def host(): # if youtube client is hosting
+        output = []
+        while len(output) == 0: 
+            try: #tries to connect to local client
+                output = requests.get(url='http://localhost:9863/query').json()
+            except requests.ConnectionError:
+                print("Connection Error. Is the client open?. Is remote control enabled in integration panel?.")
+        if output['player']['hasSong'] == False: #checks if player has a song
+            returncode = [0]
+            return returncode
+        elif output['player']['isPaused'] == True: #checks if song within player is paused
+            returncode = [1]
+            return returncode
+        elif output['track']['author'] == 'Video will play after ad': # check if song within player is an ad
+            returncode = [2]
+            return returncode
+        else: #filters output to only outputs needed (tracks, artist, and progress)
+            trackname = output['track']['title']
+            artistname = output['track']['author']
+            position_ms = output['player']['seekbarCurrentPosition']
+            returncode = 3
+            return returncode, trackname, artistname, position_ms
+    def client(): # if youtube client is client
         print("not done yet")
         #//TODO
 # main logic
@@ -109,12 +112,28 @@ while True:
             position_ms = host[1]
             artistname = host[2]
             trackname = host[3]
-            print(host)
+            print(trackname, artistname, position_ms)
+            #broadcast these //TODO
         elif host[0] == 2:
             print("Nothing is playing")
     elif spmode == 2: # if spotify is client
         print(spotify.client(trackname, artistname, offset))
-        #broadcast these //TODO
+        #request these //TODO
     elif ytmode == 1: # if youtube is hosting
-        host = youtube.host(ytmdesktop)
-
+        output = youtube.host()
+         #check returncodes
+        if output[0] == 0: 
+            print('Nothing is playing')
+        elif output[0] == 1:
+            print("Paused")
+        elif output[0] == 2:
+            print("Advertisement")
+        elif output[0] == 3:
+            trackname = output[1]
+            artistname = output[2]
+            position_ms = int(output[3])*1000
+            print(trackname, artistname, position_ms)
+            #broadcast these //TODO
+    elif ytmode == 2: # if youtube is client
+        print(youtube.client(trackname, artistname, position_ms))
+        # request these //TODO

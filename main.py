@@ -12,7 +12,7 @@ spmode = 0
 ytmode = 1 
 trackname = 'Show'
 artistname = 'Ado'
-offset = 1000
+position_ms = 1000
 
 #constants
 prevpos = 0
@@ -117,7 +117,7 @@ while True:
         elif host[0] == 2:
             print("Nothing is playing")
     elif spmode == 2: # if spotify is client
-        print(spotify.client(trackname, artistname, offset))
+        print(spotify.client(trackname, artistname, position_ms))
         #request these //TODO
     elif ytmode == 1: # if youtube is hosting
         output = youtube.host()

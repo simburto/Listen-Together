@@ -6,7 +6,7 @@ from os import getenv as env
 from time import sleep
 import requests
 
-#functions needed for website
+#functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 spmode = 0 
 ytmode = 1 
@@ -16,13 +16,12 @@ position_ms = 1000
 
 #constants
 prevpos = 0
-#return code indicates what processes need to take place
-returncode = 0
+returncode = 0 #return code indicates what processes need to take place
 
 load_dotenv()
 client_id = env('API_KEY')
 client_secret = env('API_SECRET')
-redirect_uri = 'https://callback.simburrito.repl.co/'
+redirect_uri = 'https://callback.simburrito.repl.co/' #change redirect when implementing into website
 
 #spd is for spotify developer access (get playlist)
 client_credentials_manager = oauth2.SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
@@ -103,37 +102,42 @@ while True:
         scopes = 'app-remote-control streaming user-modify-playback-state user-read-currently-playing user-read-playback-state'
         token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
         spu = spotipy.Spotify(auth=token)
-    if spmode == 1: # if spotify is hosting
-        host = spotify.host()
-         #check returncodes
-        if host[0] == 0: 
-            print('Paused')
-        elif host[0] == 1:
-            position_ms = host[1]
-            artistname = host[2]
-            trackname = host[3]
-            print(trackname, artistname, position_ms)
-            #broadcast these //TODO
-        elif host[0] == 2:
-            print("Nothing is playing")
-    elif spmode == 2: # if spotify is client
-        print(spotify.client(trackname, artistname, position_ms))
-        #request these //TODO
-    elif ytmode == 1: # if youtube is hosting
-        output = youtube.host()
-         #check returncodes
-        if output[0] == 0: 
-            print('Nothing is playing')
-        elif output[0] == 1:
-            print("Paused")
-        elif output[0] == 2:
-            print("Advertisement")
-        elif output[0] == 3:
-            trackname = output[1]
-            artistname = output[2]
-            position_ms = int(output[3])*1000
-            print(trackname, artistname, position_ms)
-            #broadcast these //TODO
-    elif ytmode == 2: # if youtube is client
-        print(youtube.client(trackname, artistname, position_ms))
-        # request these //TODO
+    try:
+        if spmode == 1: # if spotify is hosting
+            host = spotify.host()
+             #check returncodes
+            if host[0] == 0: 
+                print('Paused')
+            elif host[0] == 1:
+                position_ms = host[1]
+                artistname = host[2]
+                trackname = host[3]
+                print(trackname, artistname, position_ms)
+                #broadcast these //TODO
+            elif host[0] == 2:
+                print("Nothing is playing")
+        elif spmode == 2: # if spotify is client
+            print(spotify.client(trackname, artistname, position_ms))
+            #request these //TODO
+    
+        elif ytmode == 1: # if youtube is hosting
+            output = youtube.host()
+             #check returncodes
+            if output[0] == 0: 
+                print('Nothing is playing')
+            elif output[0] == 1:
+                print("Paused")
+            elif output[0] == 2:
+                print("Advertisement")
+            elif output[0] == 3:
+                trackname = output[1]
+                artistname = output[2]
+                position_ms = int(output[3])*1000
+                print(trackname, artistname, position_ms)
+                #broadcast these //TODO
+        elif ytmode == 2: # if youtube is client
+            print(youtube.client(trackname, artistname, position_ms))
+            # request these //TODO
+    except spotipy.SpotifyOauthError as e: # Refresh access token
+        token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
+        spu = spotipy.Spotify(auth=token) 

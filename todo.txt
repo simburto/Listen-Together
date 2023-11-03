@@ -5,12 +5,12 @@ x spotify client
 x youtube hosting
 x youtube client (web mediaplayer)
 - websocket (code system to join) packages: socketio, asyncio?
-    - route for host 
-        - receive request to create new room
-        - send id/password
-        - receive song data
-    - route for client
-        - send id/password (127.0.0.1:5000)
-        - get info from room
+    x route for host 
+        x receive request to create new room
+        x send id/password
+        x receive song data
+    x route for client
+        x send id/password (127.0.0.1:5000)
+        x get info from room
 - website
 - hosting

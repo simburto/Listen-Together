@@ -134,6 +134,7 @@ def ytroom(i, roomcode):
         trackname = host[3]
         songid = main.youtube.client(trackname, artistname, position_ms)[0] # MAIN.YOUTUBE.CLIENT IS NOT DONE YET!!
         return {
+            'isPaused': True,
             'songid': songid
         }
 

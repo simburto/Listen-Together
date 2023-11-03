@@ -115,15 +115,10 @@ class youtube():
             position_ms = output['player']['seekbarCurrentPosition']*1000
             returncode = 3
             return returncode, position_ms, artistname, trackname
-    def client(name, artist, position, playstate): # if youtube client is client
+    def client(name, artist, position): # if youtube client is client
         ytmusic = YTMusic()
         songID = youtube.getEmbed(artist, name, ytmusic)
-        if playstate == True:
-            #embed function here   
-            return 'urdad'    
-        elif playstate == False:
-            return 'urmom'
-            #embed function here
+        return songID
 # main logic
 def main(spmode: int, ytmode: int, ytpassword, ytip, spu):
     while not leave:

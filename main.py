@@ -6,7 +6,6 @@ from os import getenv as env, system
 from time import sleep
 import requests
 from ytmusicapi import YTMusic
-import socketio
 from random import randint
 
 #functions needed for website TEMPORARY

@@ -23,6 +23,7 @@ leave = False
 
 #constants
 prevpos = 0
+# return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 returncode = 0 #return code indicates what processes need to take place
 
 load_dotenv()
@@ -36,7 +37,7 @@ spd = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
 
 #spotify host and client logic
 class spotify():
-    def host():#if spotify client is hosting
+    def host(spu):#if spotify client is hosting
         #gets playing track
         track = spu.current_user_playing_track()
         #if user client is open and was playing something
@@ -45,19 +46,19 @@ class spotify():
             position_ms = track['progress_ms']
             #current_user_playing_track returns the same position if the song is paused returns nothing if the client is closed
             if position_ms == prevpos:
-                returncode = [0]
+                returncode = [1]
                 return returncode
             #filters out artist name and track name to pass to clients 
             artistname = track['item']['artists'][0]['name']
             trackname = track['item']['name']
             prevpos = position_ms
-            returncode = 1
+            returncode = 3
             return returncode, position_ms, artistname, trackname
         #if user client is open and hasn't played something yet or user client is closed
         except:
-            returncode = [2]
+            returncode = [0]
             return returncode
-    def client(trackname, artistname, position_ms, playstate):# if spotify is client
+    def client(trackname, artistname, position_ms, playstate, spu):# if spotify is client
         if playstate == True:
             try:
                 #combines artistname and trackname to get most accurate search result
@@ -89,7 +90,7 @@ class youtube():
             requests.post(url='http://localhost:9863/query', headers={f'Authorization': f'Bearer {ytpassword}'}, json=json)
         else:
             requests.post(url='http://localhost:9863/query', json=json)
-    def host(): # if youtube client is hosting
+    def host(ytpassword, ytip): # if youtube client is hosting
         output = []
         while len(output) == 0: 
             try: #tries to connect to local client
@@ -111,9 +112,9 @@ class youtube():
         else: #filters output to only outputs needed (tracks, artist, and progress)
             trackname = output['track']['title']
             artistname = output['track']['author']
-            position_ms = output['player']['seekbarCurrentPosition']
+            position_ms = output['player']['seekbarCurrentPosition']*1000
             returncode = 3
-            return returncode, trackname, artistname, position_ms
+            return returncode, position_ms, artistname, trackname
     def client(name, artist, position, playstate): # if youtube client is client
         ytmusic = YTMusic()
         songID = youtube.getEmbed(artist, name, ytmusic)
@@ -124,49 +125,26 @@ class youtube():
             return 'urmom'
             #embed function here
 # main logic
-def main(spmode, ytmode, trackname, artistname, position_ms, ytpassword, ytip, playstate):
+def main(spmode: int, ytmode: int, ytpassword, ytip, spu):
     while not leave:
-        if spmode != 0: # authenticate spotify user
-            #spu is for spotify user specific access (get user, get user-playlist)
-            username = input('username')
-            scopes = 'app-remote-control streaming user-modify-playback-state user-read-currently-playing user-read-playback-state'
-            token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
-            spu = spotipy.Spotify(auth=token)
         try:
             if spmode == 1: # if spotify is hosting
-                host = spotify.host()
-                 #check returncodes
-                if host[0] == 0: 
-                    return host[0]
-                elif host[0] == 1:
-                    position_ms = host[1]
-                    artistname = host[2]
-                    trackname = host[3]
-                    return(host[0], trackname, artistname, position_ms)
-                elif host[0] == 2:
-                    print("Nothing is playing")
-                    return host[0]
-            elif spmode == 2: # if spotify is client
-                print(spotify.client(trackname, artistname, position_ms, playstate))
-                #request these //TODO
+                host = spotify.host(spu)
+                return(host)
             elif ytmode == 1: # if youtube is hosting
-                output = youtube.host()
+                output = youtube.host(ytpassword, ytip)
                 #check returncodes
                 if output[0] == 0: 
-                    print('Nothing is playing')
+                    return output[0]
                 elif output[0] == 1:
-                    print("Paused")
+                    return output[0]
                 elif output[0] == 2:
-                    print("Advertisement")
+                    return output[0]
                 elif output[0] == 3:
                     trackname = output[1]
                     artistname = output[2]
                     position_ms = int(output[3])*1000
-                    print(trackname, artistname, position_ms)
-                    #broadcast these //TODO
-            elif ytmode == 2: # if youtube is client
-                youtube.client(trackname, artistname, position_ms, playstate)
-                # request these //TODO
+                    return(output[0], trackname, artistname, position_ms)
         except spotipy.SpotifyOauthError as e: # Refresh access token
-            token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
+            token = spu.refresh_access_token()
             spu = spotipy.Spotify(auth=token) 

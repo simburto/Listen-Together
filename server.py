@@ -140,6 +140,8 @@ def ytroom(i, roomcode):
 
 @app.route('/disconnect')
 #find how to figure out when host is disconnected, if spotify clear host cache, free roomPos and roomcode
+def disconnect():
+    return('awfoeij')
 
 if __name__ == '__main__':
     app.run()

@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from os import getenv as env, system
 from time import sleep
 import requests
-from ytmusicapi import YTMusic
 
 #functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -46,10 +45,9 @@ class spotify():
             #filters out artist name and track name to pass to clients 
             artistname = track['item']['artists'][0]['name']
             trackname = track['item']['name']
-            totaldur = track['item']['duration_ms']
             prevpos = position_ms
             returncode = 1
-            return returncode, position_ms, artistname, trackname, totaldur
+            return returncode, position_ms, artistname, trackname
         #if user client is open and hasn't played something yet or user client is closed
         except:
             returncode = [2]
@@ -105,23 +103,15 @@ class youtube():
             trackname = output['track']['title']
             artistname = output['track']['author']
             position_ms = output['player']['seekbarCurrentPosition']
-            totaldurS = output['track']['duration']
             returncode = 3
-            return returncode, trackname, artistname, position_ms, totaldurS
-    def client(name, artist, position, playlist_id, playstate, totaldurS, prevname): # if youtube client is client
-        if playstate == True and name != prevname:
-            song_id = []
-            song_name = str(name + artist)
-            songs = ytmusic.search(song_name, "songs")
-            song_id.append(songs[0]['videoId'])
-            ytmusic.add_playlist_items(playlist_id, song_id, duplicates=True)
-            json = {'command': 'player-set-seekbar', 'value': f'{position/1000}'}
-            youtube.sendreq(json, ytpassword)
-            json = {'command': 'track-play'}
-            youtube.sendreq(json, ytpassword)
-        elif playstate == False or totaldurS == position-2:
-            json = {'command': 'track-pause'}
-            youtube.sendreq(json, ytpassword)
+            return returncode, trackname, artistname, position_ms
+    def client(name, artist, position, playstate): # if youtube client is client
+        if playstate == True:
+            #embed function here   
+            return 'urdad'    
+        elif playstate == False:
+            return 'urmom'
+            #embed function here
 # main logic
 while True:
     if spmode != 0: # authenticate spotify user
@@ -130,10 +120,6 @@ while True:
         scopes = 'app-remote-control streaming user-modify-playback-state user-read-currently-playing user-read-playback-state'
         token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)
         spu = spotipy.Spotify(auth=token)
-    elif ytmode == 2:
-        system('.\ytmusicapi oauth')
-        ytmusic = YTMusic("oauth.json")
-        playlist_id = ytmusic.create_playlist('Youtube x Spotify Listen Along', "yippee!!")
     try:
         if spmode == 1: # if spotify is hosting
             host = spotify.host()
@@ -165,11 +151,10 @@ while True:
                 trackname = output[1]
                 artistname = output[2]
                 position_ms = int(output[3])*1000
-                totaldurS = output[4]
-                print(trackname, artistname, position_ms, totaldurS)
+                print(trackname, artistname, position_ms)
                 #broadcast these //TODO
         elif ytmode == 2: # if youtube is client
-            youtube.client(trackname, artistname, position_ms, playlist_id, playstate, totaldurS)
+            youtube.client(trackname, artistname, position_ms, playstate)
             # request these //TODO
     except spotipy.SpotifyOauthError as e: # Refresh access token
         token = util.prompt_for_user_token(username, scopes, client_id, client_secret, redirect_uri)

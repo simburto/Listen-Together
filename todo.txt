@@ -3,8 +3,14 @@ x spotify hostin
 x spotify client
 ? youtube user auth
 x youtube hosting
-- youtube client
-- change playstate on youtube music
-- websocket (code system to join)
+x youtube client (web mediaplayer)
+- websocket (code system to join) packages: socketio, asyncio?
+    - route for host 
+        - receive request to create new room
+        - send id/password
+        - receive song data
+    - route for client
+        - send id/password (127.0.0.1:5000)
+        - get info from room
 - website
 - hosting

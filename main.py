@@ -29,7 +29,6 @@ returncode = 0 #return code indicates what processes need to take place
 load_dotenv()
 client_id = env('API_KEY')
 client_secret = env('API_SECRET')
-redirect_uri = 'https://callback.simburrito.repl.co/' #change redirect when implementing into website
 
 #spd is for spotify developer access (get playlist)
 client_credentials_manager = oauth2.SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)

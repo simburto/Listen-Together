@@ -3,20 +3,28 @@ from random import randint
 from multiprocessing import Process
 import main
 import spotipy
-import spotipy.oauth2 as oauth2
+from spotipy.oauth2 import SpotifyOAuth
 import spotipy.util as util
+from os import getenv as env, system
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
-
+client_id = env('API_KEY')
+client_secret = env('API_SECRET')
+redirect_uri = 'https://callback.simburrito.repl.co/' #change redirect when implementing into website
 app = Flask(__name__)
-sp_oauth = oauth2.SpotifyOAuth
+sp_oauth = SpotifyOAuth(client_id,
+                        client_secret,
+                        scope='streaming app-remote-control',
+                        cache_path=".cache",
+                        show_dialog=True,
+                        redirect_uri=redirect_uri)
 rooms = []
 roomcodes = []
 
 @app.route('/spotifyauth') # get spotify authentication link
 def spotifyauth():
-    auth_url = oauth2.get_authorize_url()
+    auth_url = sp_oauth.get_authorize_url()
     return {
         'authURL': auth_url
     }
@@ -79,11 +87,18 @@ def joinroom(roomcode, spmode, ytmode):
     
 @app.route('/room/spotify/<i>/<roomcode>') # spotify enter room
 def sproom(i, roomcode):
-    if roomcode != rooms[i][0]: # prevent brute force attack
+    i= int(i)
+    try:
+        if roomcode != rooms[i][0]: # prevent brute force attack
+            return{
+                'error': 401,
+                'desc': 'Unauthorized'
+            }
+    except IndexError:
         return{
-            'error': 401,
-            'desc': 'Unauthorized'
-        }
+                'error': 401,
+                'desc': 'Unauthorized'
+            }
     host = rooms[i][1].join() # join session
     #check returncodes
     if host[0] == 0: 
@@ -107,8 +122,9 @@ def sproom(i, roomcode):
             'songid': songid # for spotify HTML embed
         }
 
-@app.route('/room/youtube/<i>') # youtube enter room
+@app.route('/room/youtube/<i>/<roomcode>') # youtube enter room
 def ytroom(i, roomcode):
+    i= int(i)
     if roomcode != rooms[i][0]: # prevent brute force attack
         return{
             'error': 401,

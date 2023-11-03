@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <div id="player"></div>
+
+  <script>
+    var player;
+    var search = '6gDhsUWCHrg'; // Default video ID
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        videoId: search,
+        playerVars: {
+          'autoplay': 1,
+          'controls': 0,
+          'start': 20,
+        },
+        events: {
+          'onReady': onPlayerReady,
+        }
+      });
+    }
+
+    function onPlayerReady(event) {
+    }
+    
+    const url = 'http://localhost:5000/getVideoId'; // Update the URL based on your Flask server's configuration
+    function changeVideoId() {
+      // Get the new video ID from the input
+      var rawInput = document.getElementById("userInput").value.split(",");
+      var userInput = {
+        author: rawInput[0],
+        song: rawInput[1]
+      };
+      
+        fetch(url, {
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Handle the video ID received from the server
+          let videoId = data.videoId;
+          return videoId;
+        })
+        .catch(error => {
+          console.error('Error calling the server:', error);
+        });
+    }
+  </script>
+
+  <button onclick="pauseVideo()">Pause Video</button>
+  <button onclick="playVideo()">Play Video</button>
+  <button onclick="changeVideoId()">Change Video</button>
+
+  <label for="userInput">Enter text:</label>
+  <input type="text" id="userInput" placeholder="Search YouTube">
+  <button onclick="changeVideoId()">Submit</button>
+
+  <p>Entered text: <span id="displayText"></span></p>
+
+  <script>
+    function pauseVideo() {
+      if (player && player.pauseVideo) {
+        player.pauseVideo();
+      }
+    }
+
+    function playVideo() {
+      if (player && player.playVideo) {
+        player.playVideo();
+      }
+    }
+
+    function getEmbed(query) {
+      // Your code to use the YouTube Data API to find the video ID based on the query
+      // You can make an API request to retrieve the video ID and update the 'search' variable
+      // Replace this comment with your actual API request code
+    }
+  </script>
+
+</body>
+
+</html>

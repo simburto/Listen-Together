@@ -11,7 +11,7 @@ from os import getenv as env, system
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 client_id = env('API_KEY')
 client_secret = env('API_SECRET')
-redirect_uri = 'https://callback.simburrito.repl.co/' #change redirect when implementing into website
+redirect_uri = 'http://127.0.0.1:5000/spotify/callback' #change redirect when implementing into website
 app = Flask(__name__)
 sp_oauth = SpotifyOAuth(client_id,
                         client_secret,
@@ -26,16 +26,17 @@ roomcodes = []
 def spotifyauth():
     auth_url = sp_oauth.get_authorize_url()
     return {
-        'authURL': auth_url
+        'authURL' : auth_url
     }
 
 @app.route('/spotify/callback') # WIP how to make secret??
 def spcallback():
     token_info = sp_oauth.get_access_token(request.args['code'])
-    session['token_info'] = token_info
     global spu
     spu = spotipy.Spotify(auth=token_info) 
-    return redirect('/submit')
+    return{
+        'isAuth': True
+    }
 
 @app.route('/createroom/<request>') # create new room
 def createroom(request):

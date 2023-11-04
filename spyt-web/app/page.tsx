@@ -13,7 +13,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24 py-72">
+    <main className="flex min-h-screen flex-col items-center justify-between p-24 py-72 gap-5">
       <div>
         <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-purple-800">
           Listen. {" "}

@@ -22,39 +22,23 @@ sp_oauth = SpotifyOAuth(client_id,
 rooms = []
 roomcodes = []
 
-@app.route('/spotifyauth') # get spotify authentication link
-def spotifyauth():
-    auth_url = sp_oauth.get_authorize_url()
-    return {
-        'authURL' : auth_url
-    }
-
-@app.route('/spotify/callback') # WIP how to make secret??
-def spcallback():
-    token_info = sp_oauth.get_access_token(request.args['code'])
-    global spu
-    spu = spotipy.Spotify(auth=token_info) 
-    return{
-        'isAuth': True
-    }
-
-@app.route('/createroom/<request>') # create new room
-def createroom(request):
+@app.route('/getroomcode') # create new room
+def getroomcode(request):
     roomcode = randint(11111111,99999999) # generate roomcode
     roomcodevalid = False
     while not roomcodevalid: # check if roomcode is used or not
         if roomcode not in roomcodes:
             roomcodevalid = True
             return {
-            'request': request,
             'id': roomcode,
             }
         else:
             roomcode = randint(11111111,99999999)
     
-@app.route('/hostroom/<roomcode>/<spmode>/<ytmode>/<ytpassword>/<ytip>') # host room
-def hostroom(roomcode, spmode, ytmode, ytpassword, ytip):
+@app.route('/hostroom/<roomcode>/<spmode>/<ytmode>/<ytpassword>/<ytip>/<token_info>') # host room
+def hostroom(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
     if spmode == 1: # if using spotify
+        spu = spotipy.Spotify(auth=token_info)
         exec = roomcode, Process(target=main.main(), args=(spmode, ytmode, None, None, spu))
     elif ytmode == 1: # if using youtubemusic
         exec = roomcode, Process(target=main.main(), args=(spmode, ytmode, ytpassword, ytip, None))
@@ -86,8 +70,8 @@ def joinroom(roomcode, spmode, ytmode):
             'desc': 'RoomNotFound'
         }
     
-@app.route('/room/spotify/<i>/<roomcode>') # spotify enter room
-def sproom(i, roomcode):
+@app.route('/room/spotify/<i>/<roomcode>/<token_info>') # spotify enter room
+def sproom(i, roomcode, token_info):
     i= int(i)
     try:
         if roomcode != rooms[i][0]: # prevent brute force attack
@@ -115,6 +99,7 @@ def sproom(i, roomcode):
             'isAdvertisement': True
         }
     elif host[0] == 3:
+        spu = spotipy.Spotify(auth=token_info)
         position_ms = host[1]
         artistname = host[2]
         trackname = host[3]

@@ -103,7 +103,13 @@ def sproom(i, roomcode, token_info):
 @app.route('/room/youtube/<i>/<roomcode>') # youtube enter room
 def ytroom(i, roomcode):
     i= int(i)
-    if roomcode != rooms[i][0]: # prevent brute force attack
+    try:
+        if roomcode != rooms[i][0]: # prevent brute force attack
+            return{
+                'error': 401,
+                'desc': 'Unauthorized'
+            }
+    except: 
         return{
             'error': 401,
             'desc': 'Unauthorized'

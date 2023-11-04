@@ -1,11 +1,9 @@
-from flask import Flask, request, redirect, session
+from flask import Flask
 from random import randint
 from multiprocessing import Process
 import main
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
-import spotipy.util as util
-from os import getenv as env, system
+from os import getenv as env
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)

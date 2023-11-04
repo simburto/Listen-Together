@@ -1,12 +1,9 @@
 import spotipy
 import spotipy.oauth2 as oauth2
-import spotipy.util as util
 from dotenv import load_dotenv
-from os import getenv as env, system
-from time import sleep
+from os import getenv as env
 import requests
 from ytmusicapi import YTMusic
-from random import randint
 
 #functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)

@@ -126,10 +126,11 @@ def ytroom(i, roomcode):
         position_ms = host[1]
         artistname = host[2]
         trackname = host[3]
-        songid = main.youtube.client(trackname, artistname, position_ms)[0] # MAIN.YOUTUBE.CLIENT IS NOT DONE YET!!
+        songid = main.youtube.client(trackname, artistname) # MAIN.YOUTUBE.CLIENT IS NOT DONE YET!!
         return {
             'isPaused': True,
-            'songid': songid
+            'songid': songid,
+            'position_ms': position_ms
         }
 
 @app.route('/disconnect')

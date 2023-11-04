@@ -13,12 +13,6 @@ client_id = env('API_KEY')
 client_secret = env('API_SECRET')
 redirect_uri = 'http://127.0.0.1:5000/spotify/callback' #change redirect when implementing into website
 app = Flask(__name__)
-sp_oauth = SpotifyOAuth(client_id,
-                        client_secret,
-                        scope='streaming app-remote-control',
-                        cache_path=".cache",
-                        show_dialog=True,
-                        redirect_uri=redirect_uri)
 rooms = []
 roomcodes = []
 

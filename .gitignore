@@ -4,3 +4,5 @@ node_modules/
 __pycache__/main.cpython-312.pyc
 *.pyc
 .cache
+package-lock.json
+package.json

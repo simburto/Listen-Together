@@ -1,7 +1,6 @@
 x spotify user auth
 x spotify hostin
 x spotify client
-? youtube user auth
 x youtube hosting
 x youtube client (web mediaplayer)
 x websocket (code system to join) packages: socketio, asyncio?
@@ -14,4 +13,5 @@ x websocket (code system to join) packages: socketio, asyncio?
         x get info from room
 - testing
 - website
+    - disconnect and remove instance when host closes tab
 - hosting

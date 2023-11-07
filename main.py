@@ -113,9 +113,10 @@ class youtube():
             position_ms = output['player']['seekbarCurrentPosition']*1000
             returncode = 3
             return returncode, trackname, artistname, position_ms
-    def client(roomcode, name, artist): # if youtube client is client
+    def client(name, artist): # if youtube client is client
         ytmusic = YTMusic()
         songID = youtube.getEmbed(artist, name, ytmusic)
+        print(songID)
         return songID
 # main logic
 def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
@@ -153,7 +154,7 @@ def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
                 #check returncodes
                 if output[0] == 0: 
                     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                     con.commit()
                 elif output[0] == 1:
                     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))

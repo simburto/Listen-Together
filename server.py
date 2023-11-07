@@ -5,6 +5,7 @@ import main
 import spotipy
 from os import getenv as env
 import sqlite3
+from time import sleep
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -75,26 +76,24 @@ def sproom(roomcode, token_info):
         try:
             con = sqlite3.connect("host.db", check_same_thread=False)
             cur = con.cursor()
-            host = cur.execute("SELECT * FROM room WHERE roomcode =?", (roomcode,)).fetchone()
+            (roomid, status, trackname, artistname, position_ms) = cur.execute("SELECT * FROM room WHERE roomcode =?", (roomcode,)).fetchone()
             con.close()
+            status = int(status)
             #check returncodes
-            if host[0] == 0: 
+            if host[1] == 0: 
                 return {
                     'notUsingService': True
                 }
-            elif host[0] == 1:
+            elif host[1] == 1:
                 return {
                     'isPaused': True
                 }
-            elif host[0] == 2:
+            elif host[1] == 2:
                 return {
                     'isAdvertisement': True
                 }
-            elif host[0] == 3:
+            elif host[1] == 3:
                 spu = spotipy.Spotify(auth=token_info)
-                position_ms = host[1]
-                artistname = host[2]
-                trackname = host[3]
                 songid = main.spotify.client(trackname, artistname, position_ms, spu)[0]
                 return {
                     'songid': songid # for spotify HTML embed
@@ -103,31 +102,30 @@ def sproom(roomcode, token_info):
             pass
 @app.route('/room/youtube/<roomcode>') # youtube enter room
 def ytroom(roomcode):
+    roomcode = int(roomcode)
     host = None
-    while host == None:
+    while host is None:
         try:
             con = sqlite3.connect("host.db", check_same_thread=False)
             cur = con.cursor()
-            host = cur.execute("SELECT * FROM room WHERE roomcode =?", (roomcode,)).fetchone()
+            (roomid, status, trackname, artistname, position_ms) = cur.execute("SELECT * FROM room WHERE roomcode =?", (roomcode,)).fetchone()
             con.close()
-            #check returncodes
-            if host[0] == 0: 
+            status = int(status)
+            # Check return codes
+            if status == 0:
                 return {
                     'notUsingService': True
                 }
-            elif host[0] == 1:
+            elif status == 1:
                 return {
                     'isPaused': True
                 }
-            elif host[0] == 2:
+            elif status == 2:
                 return {
                     'isAdvertisement': True
                 }
-            elif host[0] == 3:
-                position_ms = host[1]
-                artistname = host[2]
-                trackname = host[3]
-                songid = main.youtube.client(trackname, artistname) # MAIN.YOUTUBE.CLIENT IS NOT DONE YET!!
+            elif status == 3:
+                songid = main.youtube.client(trackname, artistname)
                 return {
                     'isPaused': False,
                     'songid': songid,

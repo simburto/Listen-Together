@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from os import getenv as env
 import requests
 from ytmusicapi import YTMusic
+import sqlite3
 
 #functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -21,6 +22,8 @@ leave = False
 prevpos = 0
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 returncode = 0 #return code indicates what processes need to take place
+con = sqlite3.connect("host.db", check_same_thread=False)
+cur = con.cursor()
 
 load_dotenv()
 client_id = env('API_KEY')
@@ -52,8 +55,8 @@ class spotify():
         #if user client is open and hasn't played something yet or user client is closed
         except:
             returncode = [0]
-            return returncode
-    def client(trackname, artistname, position_ms, playstate, spu):# if spotify is client
+            return returncode    
+    def client(roomcode, trackname, artistname, position_ms, playstate, spu):# if spotify is client
         if playstate == True:
             try:
                 #combines artistname and trackname to get most accurate search result
@@ -85,16 +88,16 @@ class youtube():
             requests.post(url='http://localhost:9863/query', headers={f'Authorization': f'Bearer {ytpassword}'}, json=json)
         else:
             requests.post(url='http://localhost:9863/query', json=json)
-    def host(ytpassword, ytip): # if youtube client is hosting
+    def host(roomcode, ytpassword, ytip): # if youtube client is hosting
         output = []
         while len(output) == 0: 
             try: #tries to connect to local client
-                if ytpassword:
-                    output = requests.get(url=f'{ytip}', headers={f'Authorization': f'Bearer {ytpassword}'}).json()
+                if ytpassword != 0:
+                    output = requests.get(url='http://' + ytip + ':9863/query', headers={f'Authorization': f'Bearer {ytpassword}'}).json()
                 else:
-                    output = requests.get(url=f'{ytip}').json()
+                    output = requests.get(url='http://' + ytip + ':9863/query').json()
             except requests.ConnectionError:
-                print("Connection Error. Is the client open?. Is remote control enabled in integration panel?.")
+                print(f"Connection Error. Is the client open?. Is remote control enabled in integration panel?.{ytip}")
         if output['player']['hasSong'] == False: #checks if player has a song
             returncode = [0]
             return returncode
@@ -109,32 +112,64 @@ class youtube():
             artistname = output['track']['author']
             position_ms = output['player']['seekbarCurrentPosition']*1000
             returncode = 3
-            return returncode, position_ms, artistname, trackname
-    def client(name, artist): # if youtube client is client
+            return returncode, trackname, artistname, position_ms
+    def client(roomcode, name, artist): # if youtube client is client
         ytmusic = YTMusic()
         songID = youtube.getEmbed(artist, name, ytmusic)
         return songID
 # main logic
-def main(spmode: int, ytmode: int, ytpassword, ytip, spu):
-    while not leave:
+def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
+    roomcode = int(roomcode)
+    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, 0, None, None, 0))
+    con.commit()
+    while True:
+        spmode = int(spmode)
+        ytmode = int(ytmode)
         try:
             if spmode == 1: # if spotify is hosting
-                host = spotify.host(spu)
-                return(host)
+                spu = spotipy.Spotify(auth=token_info)
+                output = spotify.host(spu)
+                if output[0] == 0: 
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    con.commit()
+                elif output[0] == 1:
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    con.commit()
+                elif output[0] == 2:
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    con.commit()
+                elif output[0] == 3:
+                    trackname = output[1]
+                    artistname = output[2]
+                    position_ms = output[3]
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
+                    con.commit()
             elif ytmode == 1: # if youtube is hosting
-                output = youtube.host(ytpassword, ytip)
+                output = youtube.host(roomcode, ytpassword, ytip)
                 #check returncodes
                 if output[0] == 0: 
-                    return output[0]
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    con.commit()
                 elif output[0] == 1:
-                    return output[0]
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                    con.commit()
                 elif output[0] == 2:
-                    return output[0]
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                    con.commit()
                 elif output[0] == 3:
                     trackname = output[1]
                     artistname = output[2]
                     position_ms = int(output[3])*1000
-                    return(output[0], trackname, artistname, position_ms)
+                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
+                    con.commit()
         except spotipy.SpotifyOauthError as e: # Refresh access token
             token = spu.refresh_access_token()
             spu = spotipy.Spotify(auth=token) 

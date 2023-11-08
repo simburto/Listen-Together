@@ -46,6 +46,8 @@ def getroomcode():
 @app.route('/hostroom/<roomcode>/<spmode>/<ytmode>/<ytpassword>/<ytip>/<token_info>')  # host room
 def hostroom(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
     roomcode = int(roomcode)
+    if roomcode not in roomcodes:
+        return "Unauthorized", 401 
     if spmode == '1':  # Note that I've changed this to a string comparison
         instance = Process(target=main.main, args=(roomcode, spmode, ytmode, None, None, token_info))
     elif ytmode == '1':  # Also changed this to a string comparison
@@ -71,6 +73,9 @@ def joinroom(roomcode):
     
 @app.route('/room/spotify/<roomcode>/<token_info>') # spotify enter room
 def sproom(roomcode, token_info):
+    roomcode = int(roomcode)
+    if roomcode not in roomcodes:
+        return "Unauthorized", 401 
     host = None
     while host == None:
         try:
@@ -103,6 +108,8 @@ def sproom(roomcode, token_info):
 @app.route('/room/youtube/<roomcode>') # youtube enter room
 def ytroom(roomcode):
     roomcode = int(roomcode)
+    if roomcode not in roomcodes:
+        return "Unauthorized", 401 
     host = None
     while host is None:
         try:
@@ -134,10 +141,14 @@ def ytroom(roomcode):
         except TypeError:
             pass
 
-@app.route('/disconnect')
+@app.route('/disconnect/<roomcode>')
 #find how to figure out when host is disconnected, if spotify clear host cache, free roomPos and roomcode
-def disconnect():
-    return('awfoeij')
+def disconnect(roomcode):
+    con = sqlite3.connect("host.db", check_same_thread=False)
+    cur = con.cursor()
+    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+    con.commit()
+    con.close()
 
 if __name__ == '__main__':
     app.run()

@@ -36,6 +36,7 @@ def getroomcode():
     while not roomcodevalid: # check if roomcode is used or not
         if roomcode not in roomcodes:
             roomcodevalid = True
+            roomcodes.append(roomcode) # add roomcode to roomcodes list
             return {
             'id': roomcode,
             }

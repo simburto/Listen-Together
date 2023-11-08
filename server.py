@@ -11,12 +11,12 @@ from time import sleep
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 client_id = env('API_KEY')
 client_secret = env('API_SECRET')
-redirect_uri = 'http://127.0.0.1:5000/spotify/callback' #change redirect when implementing into website
 app = Flask(__name__)
+
+#initialize database
 rooms = []
 con = sqlite3.connect("host.db", check_same_thread=False)
 cur = con.cursor()
-init = 0
 try:
     cur.execute("CREATE TABLE room(roomcode INT, returncode, trackname, artistname, position_ms)")
     con.commit()
@@ -28,7 +28,6 @@ con.close()
 for i in range(11111111,111111111):
     rooms.append(None)
 roomcodes = []
-#initialize database
 
 @app.route('/getroomcode') # create new room
 def getroomcode():
@@ -48,9 +47,9 @@ def hostroom(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
     roomcode = int(roomcode)
     if roomcode not in roomcodes:
         return "Unauthorized", 401 
-    if spmode == '1':  # Note that I've changed this to a string comparison
+    if spmode == '1': 
         instance = Process(target=main.main, args=(roomcode, spmode, ytmode, None, None, token_info))
-    elif ytmode == '1':  # Also changed this to a string comparison
+    elif ytmode == '1': 
         instance = Process(target=main.main, args=(roomcode, spmode, ytmode, ytpassword, ytip, None))
     roomcodes.append(roomcode) # add roomcode to roomcodes list
     rooms[roomcode] = instance  # Store the instance in the dictionary using the roomcode as the key
@@ -149,6 +148,9 @@ def disconnect(roomcode):
     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
     con.commit()
     con.close()
+    rooms[roomcode].terminate()
+    rooms[roomcode] = None
+    roomcodes.remove(roomcode)
 
 if __name__ == '__main__':
     app.run()

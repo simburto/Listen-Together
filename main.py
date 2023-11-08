@@ -5,6 +5,7 @@ from os import getenv as env
 import requests
 from ytmusicapi import YTMusic
 import sqlite3
+from time import sleep
 
 #functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -171,6 +172,7 @@ def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
                     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
                     cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
                     con.commit()
+            sleep(1)
         except spotipy.SpotifyOauthError as e: # Refresh access token
             token = spu.refresh_access_token()
             spu = spotipy.Spotify(auth=token) 

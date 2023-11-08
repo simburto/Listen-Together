@@ -41,6 +41,7 @@ def getroomcode():
             }
         else:
             roomcode = randint(11111111,99999999)
+    return "Rooms full", 507
     
 @app.route('/hostroom/<roomcode>/<spmode>/<ytmode>/<ytpassword>/<ytip>/<token_info>')  # host room
 def hostroom(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
@@ -151,6 +152,9 @@ def disconnect(roomcode):
     rooms[roomcode].terminate()
     rooms[roomcode] = None
     roomcodes.remove(roomcode)
+    return {
+        'disconnected': True
+    }
 
 if __name__ == '__main__':
     app.run()

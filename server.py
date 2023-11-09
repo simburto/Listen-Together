@@ -1,6 +1,6 @@
 from flask import Flask
 from random import randint
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 import main
 import spotipy
 from os import getenv as env
@@ -11,6 +11,7 @@ from time import sleep
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 client_id = env('API_KEY')
 client_secret = env('API_SECRET')
+sqlitekey = env('SQLITE_KEY')
 app = Flask(__name__)
 
 #initialize database
@@ -147,5 +148,13 @@ def disconnect(roomcode):
         'disconnected': True
     }
 
+@app.route('/db/<sqlite_key>')
+def db(sqlite_key):
+    if sqlite_key != sqlitekey:
+        return "Unauthorized", 401
+    else:
+        con = sqlite3.connect("host.db", check_same_thread=False)
+        cur = con.cursor()
+        return cur.execute("SELECT * FROM room").fetchall()
 if __name__ == '__main__':
     app.run()

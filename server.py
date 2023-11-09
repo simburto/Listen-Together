@@ -59,18 +59,6 @@ def hostroom(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
     return {
         'isHosting': True
     }
-
-@app.route('/joinroom/<roomcode>') # join room
-def joinroom(roomcode):
-    if roomcode in roomcodes: # check if roomcode exists
-        return{
-            'isRoomcode': True
-        }
-    else:
-        return{
-            'error': 404,
-            'desc': 'RoomNotFound'
-        }
     
 @app.route('/room/spotify/<roomcode>/<token_info>') # spotify enter room
 def sproom(roomcode, token_info):
@@ -86,21 +74,23 @@ def sproom(roomcode, token_info):
             con.close()
             status = int(status)
             #check returncodes
-            if host[1] == 0: 
+            if status == 0: 
                 return {
                     'notUsingService': True
                 }
-            elif host[1] == 1:
+            elif status == 1:
+                spu = spotipy.Spotify(auth=token_info)
+                main.spotify.client(None, None, None, True, spu)
                 return {
                     'isPaused': True
                 }
-            elif host[1] == 2:
+            elif status == 2:
                 return {
                     'isAdvertisement': True
                 }
-            elif host[1] == 3:
+            elif status == 3:
                 spu = spotipy.Spotify(auth=token_info)
-                songid = main.spotify.client(trackname, artistname, position_ms, spu)[0]
+                songid = main.spotify.client(trackname, artistname, position_ms, True, spu)[0]
                 return {
                     'songid': songid # for spotify HTML embed
                 }

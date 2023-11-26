@@ -9,8 +9,8 @@ from time import sleep
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
-client_id = env('API_KEY')
-client_secret = env('API_SECRET')
+client_id = env('SPOTIFY_ID')
+client_secret = env('SPOTIFY_SECRET')
 sqlitekey = env('SQLITE_KEY')
 app = Flask(__name__)
 

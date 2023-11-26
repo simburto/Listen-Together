@@ -27,8 +27,8 @@ con = sqlite3.connect("host.db", check_same_thread=False)
 cur = con.cursor()
 
 load_dotenv()
-client_id = env('API_KEY')
-client_secret = env('API_SECRET')
+client_id = env('SPOTIFY_ID')
+client_secret = env('SPOTIFY_SECRET')
 
 #spd is for spotify developer access (get playlist)
 client_credentials_manager = oauth2.SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)

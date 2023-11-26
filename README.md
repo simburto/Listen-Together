@@ -1,4 +1,4 @@
-# Youtube X Spotify Listen Along
+# Listen Together
 This repository is the source code for http://listenalong.ca/
 ## Contributors
 [<img alt="matthewholandez" src="https://github.com/matthewholandez.png?size=120" width="120px"/>](https://github.com/matthewholandez)

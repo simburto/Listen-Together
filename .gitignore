@@ -5,4 +5,4 @@ __pycache__/main.cpython-312.pyc
 *.pyc
 .cache
 package-lock.json
-package.json
+.next

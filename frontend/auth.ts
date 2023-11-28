@@ -13,7 +13,9 @@ export const config = {
     logo: "https://next-auth.js.org/img/logo/logo-sm.png",
   },
   providers: [
-    Spotify,
+    Spotify({
+      authorization: "https://accounts.spotify.com/en/authorize?scope=app-remote-control+streaming+user-modify-playback-state+user-read-currently-playing+user-read-playback-state"
+    }),
   ],
   callbacks: {
     async jwt({ token, account, user }) {

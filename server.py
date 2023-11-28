@@ -125,10 +125,11 @@ def ytroom(roomcode):
                 }
             elif status == 3:
                 songid = main.youtube.client(trackname, artistname)
+                print('here x3')
                 return {
                     'isPaused': False,
                     'songid': songid,
-                    'position_ms': position_ms
+                    'position_ms': position_ms,
                 }
         except TypeError:
             pass

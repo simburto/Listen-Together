@@ -52,7 +52,7 @@ class spotify():
             trackname = track['item']['name']
             prevpos = position_ms
             returncode = 3
-            return returncode, position_ms, artistname, trackname
+            return returncode, trackname, artistname, position_ms
         #if user client is open and hasn't played something yet or user client is closed
         except:
             returncode = [0]
@@ -80,9 +80,11 @@ class spotify():
             spu.pause_playback
             return 'Pause'
 class youtube():
-    def getEmbed(author, title,ytmusic):
+    def getEmbed(author, title, ytmusic):
+        print('herex 6')
         search = ytmusic.search(author + title, filter="songs")
         songID = search[0]['videoId']
+        print('songID')
         return songID
     def sendreq(json, ytpassword):
         if ytpassword:
@@ -116,6 +118,7 @@ class youtube():
             return returncode, trackname, artistname, position_ms
     def client(name, artist): # if youtube client is client
         ytmusic = YTMusic()
+        print('herex4')
         songID = youtube.getEmbed(artist, name, ytmusic)
         print(songID)
         return songID
@@ -133,15 +136,15 @@ def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
                 output = spotify.host(spu)
                 if output[0] == 0: 
                     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                     con.commit()
                 elif output[0] == 1:
                     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                     con.commit()
                 elif output[0] == 2:
                     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?))", (roomcode, output[0], None, None, 0))
+                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                     con.commit()
                 elif output[0] == 3:
                     trackname = output[1]

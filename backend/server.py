@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect
 from random import randint
 from multiprocessing import Process
 import main
@@ -29,6 +29,10 @@ con.close()
 for i in range(11111111,111111111):
     rooms.append(None)
 roomcodes = []
+
+@app.route('/') # initial route
+def index():
+    return redirect('https://shockingbravecores.simburrito.repl.co/')
 
 @app.route('/getroomcode') # create new room
 def getroomcode():
@@ -97,6 +101,7 @@ def sproom(roomcode, token_info):
                 }
         except TypeError:
             pass
+
 @app.route('/room/youtube/<roomcode>') # youtube enter room
 def ytroom(roomcode):
     roomcode = int(roomcode)

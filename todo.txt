@@ -1,5 +1,5 @@
 x spotify user auth
-x spotify hostin
+x spotify hosting
 x spotify client
 x youtube hosting
 x youtube client (web mediaplayer)
@@ -12,6 +12,16 @@ x websocket (code system to join) packages: socketio, asyncio?
         x send id/password (127.0.0.1:5000)
         x get info from room
 - testing
-- website
-    - disconnect and remove instance when host closes tab
+    x youtube and spotify hosting
+    - youtube and spotify client
+        - in browser media player
+        - spotify client 
+- frontend
+    - auth
+    - in browser media player (for youtube)
+    - api calls
+        - disconnect and remove instance when host closes tab
 - hosting
+    x domain
+    - convert to wsgi
+    - launch

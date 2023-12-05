@@ -6,3 +6,5 @@ __pycache__/main.cpython-312.pyc
 .cache
 package-lock.json
 .next
+frontend/.env.local
+frontend/next-env.d.ts

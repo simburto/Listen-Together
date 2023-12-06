@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Flask-SocketIO Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #log {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flask-SocketIO Test</h1>
+    <h2>Received Array:</h2>
+    <table id="log" class="display">
+        <thead>
+            <tr>
+                <th>Column 1</th>
+                <th>Column 2</th>
+                <th>Column 3</th>
+                <th>Column 4</th>
+                <th>Column 5</th>
+                <th>Column 6</th>
+                <!-- Adjust headers as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table body will be populated dynamically -->
+        </tbody>
+    </table>
+    
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            var socket = io();
+
+            // Initialize DataTable with sorting on the first column (Column 1)
+            $('#log').DataTable({
+                "columnDefs": [{
+                    "targets": 0,
+                    "orderable": true
+                }]
+            });
+
+            socket.on('connect', function() {
+                $('#log').append('<div>Connected to the server!</div>');
+            });
+
+            socket.on('my_response', function(msg, cb) {
+                // Clear the existing table data
+                var table = $('#log').DataTable();
+                table.clear().draw();
+
+                // Add received 2D array data to the table
+                msg.data.forEach(function(row) {
+                    table.row.add(row).draw();
+                });
+
+                if (cb)
+                    cb();
+            });
+
+            // Additional event handlers can be added here for different events.
+        });
+    </script>
+</body>
+</html>

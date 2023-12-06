@@ -1,4 +1,4 @@
-from flask import Flask, redirect
+from flask import Flask, redirect, session
 from random import randint
 from multiprocessing import Process
 import main
@@ -127,8 +127,10 @@ def ytroom(roomcode):
         except TypeError:
             pass
 
-@app.route('/disconnect/<roomcode>')
-def disconnect(roomcode):
+@app.route('/disconnect/<roomcode>/<authkey>')
+def disconnect(roomcode, authkey):
+    if authkey != env('disconnect-auth-key').decode('utf8'):
+        return 'Unauthorized', 401
     roomcode = int(roomcode)
     if roomcode not in roomcodes:
         return "Room not found", 404
@@ -165,13 +167,5 @@ def disconnect(roomcode):
         for row in data:
             roomcodes.append(row[0])  # Assuming roomcode is in the first position of the row
 
-@app.route('/db/<sqlite_key>')
-def db(sqlite_key):
-    if sqlite_key != sqlitekey:
-        return "Unauthorized", 401
-    else:
-        con = sqlite3.connect("host.db", check_same_thread=False)
-        cur = con.cursor()
-        return cur.execute("SELECT * FROM room").fetchall()
 if __name__ == '__main__':
-        app.run()
+    Flask.run(app)

@@ -7,18 +7,7 @@ from ytmusicapi import YTMusic
 import sqlite3
 from time import sleep
 
-#functions needed for website TEMPORARY
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
-spmode = 0 
-ytmode = 2 
-trackname = 'Show'
-artistname = 'Ado'
-position_ms = 1000
-ytpassword = None
-ytip = 'http://localhost:9863/query'
-playstate = True
-leave = False
-
 #constants
 prevpos = 0
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
@@ -59,20 +48,21 @@ class spotify():
             return returncode    
     def client(roomcode, trackname, artistname, position_ms, playstate, spu):# if spotify is client
         if playstate == True:
+            print('here')
             try:
                 #combines artistname and trackname to get most accurate search result
-                search_term = f"{artistname}%20{trackname}" 
+                search_term = f"artist:" + artistname + " track:" + trackname
                 trackid = []
                 #searches spotify for type 'track' using searchterm 
                 track = spd.search(q=search_term, limit=1, offset = 0, type='track', market='CA') # returns dict
-
+                print('search done')
                 #filter dict
                 trackid = [track['tracks']['items'][0]['uri']]
                 artistname = track['tracks']['items'][0]['artists'][0]['name']
                 trackname = track['tracks']['items'][0]['name']
-
+                print('filter done')
                 #passes uri of searched track + position of song in ms to start_playback
-                spu.start_playback(uris=trackid, position_ms = position_ms)
+                spu.start_playback(uris=trackid, offset=f'position: {position_ms}')
                 return trackid, artistname, trackname
             except:
                 return 'An Error Occured'

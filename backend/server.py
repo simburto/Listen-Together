@@ -1,10 +1,12 @@
-from flask import Flask, redirect, session
+from flask import Flask, redirect, session, render_template
 from random import randint
 from multiprocessing import Process
 import main
 import spotipy
 from os import getenv as env
 import sqlite3
+from threading import Lock
+from flask_socketio import SocketIO, emit
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -12,6 +14,10 @@ client_id = env('SPOTIFY_ID')
 client_secret = env('SPOTIFY_SECRET')
 sqlitekey = env('SQLITE_KEY')
 app = Flask(__name__)
+async_mode = None
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+thread_lock = Lock()
 
 #initialize database
 con = sqlite3.connect("host.db", check_same_thread=False)
@@ -167,5 +173,34 @@ def disconnect(roomcode, authkey):
         for row in data:
             roomcodes.append(row[0])  # Assuming roomcode is in the first position of the row
 
+def background_thread():
+    data = []
+    prevdata = []
+    while True:
+        socketio.sleep(1)
+        con = sqlite3.connect('host.db', check_same_thread=False)
+        cur = con.cursor()
+        data = cur.execute('SELECT * FROM room').fetchall()
+        con.close()
+        if data != prevdata:
+            prevdata = data
+            socketio.emit('my_response',
+                        {'data': data})
+
+@app.route('/db/<sqlite_key>')
+def db(sqlite_key):
+    if sqlite_key != sqlitekey:
+        return 'Unauthorized', 401
+    else:
+        return render_template('index.html', async_mode=socketio.async_mode)
+
+@socketio.event
+def connect():
+    global thread
+    with thread_lock:
+        if thread is None:
+            thread = socketio.start_background_task(background_thread)
+    emit('my_response', {'data': 'Connected', 'count': 0})
+
 if __name__ == '__main__':
-    Flask.run(app)
+    socketio.run(app)

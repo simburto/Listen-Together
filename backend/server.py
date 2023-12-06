@@ -13,6 +13,7 @@ from flask_socketio import SocketIO, emit
 client_id = env('SPOTIFY_ID')
 client_secret = env('SPOTIFY_SECRET')
 sqlitekey = env('SQLITE_KEY')
+redirect_uri = env('redirect_uri')
 app = Flask(__name__)
 async_mode = None
 socketio = SocketIO(app, async_mode=async_mode)
@@ -68,7 +69,6 @@ def sproom(roomcode, token_info, refresh_token):
     if roomcode not in roomcodes:
         return "Unauthorized", 401 
     while True:
-        spotipy.oauth2.SpotifyOAuth.refresh_access_token(refresh_token)
         try:
             con = sqlite3.connect("host.db", check_same_thread=False)
             cur = con.cursor()

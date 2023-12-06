@@ -18,10 +18,15 @@ cur = con.cursor()
 load_dotenv()
 client_id = env('SPOTIFY_ID')
 client_secret = env('SPOTIFY_SECRET')
+redirect_uri = env('redirect_uri')
 
 #spd is for spotify developer access (get playlist)
 client_credentials_manager = oauth2.SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 spd = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
+
+def refreshtoken(refresh_token):
+    spotify_oauth = spotipy.oauth2.SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
+    spotify_oauth.refresh_access_token(refresh_token=refresh_token)
 
 #spotify host and client logic
 class spotify():
@@ -47,7 +52,7 @@ class spotify():
             returncode = [0]
             return returncode    
     def client(roomcode, trackname, artistname, position_ms, playstate, spu, refreshtoken):# if spotify is client
-        spu.refresh_access_token(refreshtoken)
+        refreshtoken(refreshtoken)
         if playstate == True:
             #combines artistname and trackname to get most accurate search result
             search_term = f"artist:" + artistname + " track:" + trackname
@@ -104,7 +109,7 @@ class youtube():
 # main logic
 def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info, refresh_token):
     roomcode = int(roomcode)
-    spotipy.oauth2.SpotifyOAuth.refresh_access_token(refresh_token)
+    refreshtoken(refresh_token)
     cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, 0, None, None, 0))
     con.commit()
     while True:

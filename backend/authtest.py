@@ -9,4 +9,3 @@ client_secret = env('test_secret')
 
 scope = 'app-remote-control streaming user-modify-playback-state user-read-currently-playing user-read-playback-state'
 print(spotipy.util.prompt_for_user_token('username',scope,client_id= client_id,client_secret = client_secret,redirect_uri='https://callback.simburrito.repl.co'))
-

@@ -26,3 +26,4 @@ next-env.d.ts
 .next
 .vercel
 .env*.local
+.cache-username

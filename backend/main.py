@@ -48,39 +48,27 @@ class spotify():
             return returncode    
     def client(roomcode, trackname, artistname, position_ms, playstate, spu):# if spotify is client
         if playstate == True:
-            print('here')
-            try:
-                #combines artistname and trackname to get most accurate search result
-                search_term = f"artist:" + artistname + " track:" + trackname
-                trackid = []
-                #searches spotify for type 'track' using searchterm 
-                track = spd.search(q=search_term, limit=1, offset = 0, type='track', market='CA') # returns dict
-                print('search done')
-                #filter dict
-                trackid = [track['tracks']['items'][0]['uri']]
-                artistname = track['tracks']['items'][0]['artists'][0]['name']
-                trackname = track['tracks']['items'][0]['name']
-                print('filter done')
-                #passes uri of searched track + position of song in ms to start_playback
-                spu.start_playback(uris=trackid, offset=f'position: {position_ms}')
-                return trackid, artistname, trackname
-            except:
-                return 'An Error Occured'
+            #combines artistname and trackname to get most accurate search result
+            search_term = f"artist:" + artistname + " track:" + trackname
+            trackid = []
+            #searches spotify for type 'track' using searchterm 
+            track = spd.search(q=search_term, limit=1, offset = 0, type='track', market='CA') # returns dict
+            #filter dict
+            trackid = [track['tracks']['items'][0]['uri']]
+            artistname = track['tracks']['items'][0]['artists'][0]['name']
+            trackname = track['tracks']['items'][0]['name']
+            #passes uri of searched track + position of song in ms to start_playback
+            spu.start_playback(uris=trackid, position_ms = int(position_ms))
+
+            return trackid, artistname, trackname, position_ms
         else:
             spu.pause_playback
             return 'Pause'
 class youtube():
     def getEmbed(author, title, ytmusic):
-        print('herex 6')
         search = ytmusic.search(author + title, filter="songs")
         songID = search[0]['videoId']
-        print('songID')
         return songID
-    def sendreq(json, ytpassword):
-        if ytpassword:
-            requests.post(url='http://localhost:9863/query', headers={f'Authorization': f'Bearer {ytpassword}'}, json=json)
-        else:
-            requests.post(url='http://localhost:9863/query', json=json)
     def host(roomcode, ytpassword, ytip): # if youtube client is hosting
         output = []
         while len(output) == 0: 
@@ -103,12 +91,12 @@ class youtube():
         else: #filters output to only outputs needed (tracks, artist, and progress)
             trackname = output['track']['title']
             artistname = output['track']['author']
+            print(output['player']['seekbarCurrentPosition'])
             position_ms = output['player']['seekbarCurrentPosition']*1000
             returncode = 3
             return returncode, trackname, artistname, position_ms
     def client(name, artist): # if youtube client is client
         ytmusic = YTMusic()
-        print('herex4')
         songID = youtube.getEmbed(artist, name, ytmusic)
         print(songID)
         return songID
@@ -161,7 +149,7 @@ def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
                 elif output[0] == 3:
                     trackname = output[1]
                     artistname = output[2]
-                    position_ms = int(output[3])*1000
+                    position_ms = output[3]
                     cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
                     cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
                     con.commit()

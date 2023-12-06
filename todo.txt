@@ -1,9 +1,9 @@
 x spotify user auth
-x spotify hostin
+x spotify hosting
 x spotify client
 x youtube hosting
 x youtube client (web mediaplayer)
-x websocket (code system to join) packages: socketio, asyncio?
+x sqlite
     x route for host 
         x receive request to create new room
         x send id/password
@@ -13,5 +13,8 @@ x websocket (code system to join) packages: socketio, asyncio?
         x get info from room
 - testing
 - website
-    - disconnect and remove instance when host closes tab
+    - frontend
+        - spotify refresh token
+        - api calls
+        - disconnect and remove instance when host closes tab
 - hosting

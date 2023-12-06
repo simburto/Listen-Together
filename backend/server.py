@@ -119,7 +119,6 @@ def ytroom(roomcode):
                 }
             elif status == 3:
                 songid = main.youtube.client(trackname, artistname)
-                print('here x3')
                 return {
                     'isPaused': False,
                     'songid': songid,
@@ -129,21 +128,42 @@ def ytroom(roomcode):
             pass
 
 @app.route('/disconnect/<roomcode>')
-#find how to figure out when host is disconnected, if spotify clear host cache, free roomPos and roomcode
 def disconnect(roomcode):
-    con = sqlite3.connect("host.db", check_same_thread=False)
-    cur = con.cursor()
-    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-    con.commit()
-    con.close()
-    while roomcode != roomcodes[i]:
-        i=i+1
-    rooms[i].terminate()
-    rooms[i] = None
-    roomcodes.remove(roomcode)
-    return {
-        'disconnected': True
-    }
+    roomcode = int(roomcode)
+    if roomcode not in roomcodes:
+        return "Room not found", 404
+
+    try:
+        con = sqlite3.connect("host.db", check_same_thread=False)
+        cur = con.cursor()
+        cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+        con.commit()
+        con.close()
+
+        if roomcode in roomcodes:
+            i = roomcodes.index(roomcode)
+            if i < len(rooms) and rooms[i] is not None:
+                rooms[i].terminate()
+                rooms[i].join()  # Wait for process termination
+                del rooms[i]
+                roomcodes.remove(roomcode)
+
+        return {
+            'disconnected': True
+        }
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+    finally:
+        # Refresh the database data here
+        con = sqlite3.connect("host.db", check_same_thread=False)
+        cur = con.cursor()
+        data = cur.execute("SELECT * FROM room").fetchall()
+        con.close()
+        # Update rooms and roomcodes list based on refreshed data
+        rooms.clear()
+        roomcodes.clear()
+        for row in data:
+            roomcodes.append(row[0])  # Assuming roomcode is in the first position of the row
 
 @app.route('/db/<sqlite_key>')
 def db(sqlite_key):

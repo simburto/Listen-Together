@@ -46,7 +46,8 @@ class spotify():
         except:
             returncode = [0]
             return returncode    
-    def client(roomcode, trackname, artistname, position_ms, playstate, spu):# if spotify is client
+    def client(roomcode, trackname, artistname, position_ms, playstate, spu, refreshtoken):# if spotify is client
+        spu.refresh_access_token(refreshtoken)
         if playstate == True:
             #combines artistname and trackname to get most accurate search result
             search_term = f"artist:" + artistname + " track:" + trackname
@@ -78,7 +79,9 @@ class youtube():
                 else:
                     output = requests.get(url='http://' + ytip + ':9863/query').json()
             except requests.ConnectionError:
-                print(f"Connection Error. Is the client open?. Is remote control enabled in integration panel?.{ytip}")
+                return{
+                    'isHosting': False
+                }
         if output['player']['hasSong'] == False: #checks if player has a song
             returncode = [0]
             return returncode
@@ -91,14 +94,12 @@ class youtube():
         else: #filters output to only outputs needed (tracks, artist, and progress)
             trackname = output['track']['title']
             artistname = output['track']['author']
-            print(output['player']['seekbarCurrentPosition'])
             position_ms = output['player']['seekbarCurrentPosition']*1000
             returncode = 3
             return returncode, trackname, artistname, position_ms
     def client(name, artist): # if youtube client is client
         ytmusic = YTMusic()
         songID = youtube.getEmbed(artist, name, ytmusic)
-        print(songID)
         return songID
 # main logic
 def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):

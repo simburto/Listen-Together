@@ -37,8 +37,8 @@ rooms = []
 def index():
     return redirect('https://shockingbravecores.simburrito.repl.co/')
 
-@app.route('/hostroom/<spmode>/<ytmode>/<ytpassword>/<ytip>/<token_info>')  # host room
-def hostroom(spmode, ytmode, ytpassword, ytip, token_info, ):
+@app.route('/hostroom/<spmode>/<ytmode>/<ytpassword>/<ytip>/<token_info>/<refresh_token>')  # host room
+def hostroom(spmode, ytmode, ytpassword, ytip, token_info, refresh_token):
     roomcode = randint(11111111,99999999) # generate roomcode
     roomcodevalid = False
     while not roomcodevalid: # check if roomcode is used or not
@@ -51,7 +51,7 @@ def hostroom(spmode, ytmode, ytpassword, ytip, token_info, ):
         return "Rooms full", 507
     roomcode = int(roomcode)
     if spmode == '1': 
-        instance = Process(target=main.main, args=(roomcode, spmode, ytmode, None, None, token_info))
+        instance = Process(target=main.main, args=(roomcode, spmode, ytmode, None, None, token_info, refresh_token))
     elif ytmode == '1': 
         instance = Process(target=main.main, args=(roomcode, spmode, ytmode, ytpassword, ytip, None))
     roomcodes.append(roomcode) # add roomcode to roomcodes list
@@ -62,12 +62,13 @@ def hostroom(spmode, ytmode, ytpassword, ytip, token_info, ):
         'roomcode': roomcode,
     }
 
-@app.route('/spotify/<roomcode>/<token_info>') # spotify enter room
-def sproom(roomcode, token_info):
+@app.route('/spotify/<roomcode>/<token_info>/<refresh_token>') # spotify enter room
+def sproom(roomcode, token_info, refresh_token):
     roomcode = int(roomcode)
     if roomcode not in roomcodes:
         return "Unauthorized", 401 
     while True:
+        spotipy.oauth2.SpotifyOAuth.refresh_access_token(refresh_token)
         try:
             con = sqlite3.connect("host.db", check_same_thread=False)
             cur = con.cursor()
@@ -81,7 +82,7 @@ def sproom(roomcode, token_info):
                 }
             elif status == 1:
                 spu = spotipy.Spotify(auth=token_info)
-                main.spotify.client(None, None, None, None, False, spu)
+                main.spotify.client(None, None, None, None, False, spu, refresh_token)
                 return {
                     'isPaused': True
                 }
@@ -91,7 +92,7 @@ def sproom(roomcode, token_info):
                 }
             elif status == 3:
                 spu = spotipy.Spotify(auth=token_info)
-                songid = main.spotify.client(roomcode, trackname, artistname, position_ms, True, spu)
+                songid = main.spotify.client(roomcode, trackname, artistname, position_ms, True, spu, refresh_token)
                 return {
                     'songid': songid # for spotify HTML embed
                 }

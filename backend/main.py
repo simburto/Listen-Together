@@ -102,8 +102,9 @@ class youtube():
         songID = youtube.getEmbed(artist, name, ytmusic)
         return songID
 # main logic
-def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info):
+def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info, refresh_token):
     roomcode = int(roomcode)
+    spotipy.oauth2.SpotifyOAuth.refresh_access_token(refresh_token)
     cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, 0, None, None, 0))
     con.commit()
     while True:

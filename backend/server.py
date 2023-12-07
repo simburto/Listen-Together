@@ -136,7 +136,7 @@ def ytroom(roomcode):
 
 @app.route('/disconnect/<roomcode>/<authkey>')
 def disconnect(roomcode, authkey):
-    if authkey != env('disconnect-auth-key').decode('utf8'):
+    if authkey != env('disconnect-auth-key'):
         return 'Unauthorized', 401
     roomcode = int(roomcode)
     if roomcode not in roomcodes:
@@ -202,6 +202,13 @@ def connect():
         if thread is None:
             thread = socketio.start_background_task(background_thread)
     emit('my_response', {'data': 'Connected', 'count': 0})
+
+    # When a client connects, fetch and emit the initial data immediately
+    con = sqlite3.connect('host.db', check_same_thread=False)
+    cur = con.cursor()
+    data = cur.execute('SELECT * FROM room').fetchall()
+    con.close()
+    emit('initial_data', data)
 
 if __name__ == '__main__':
     socketio.run(app)

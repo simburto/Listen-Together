@@ -50,34 +50,46 @@
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
             var socket = io();
-            $('#log').DataTable({
+            var table = $('#log').DataTable({
                 "columnDefs": [{
                     "targets": 0,
                     "orderable": true
                 }]
             });
-
+    
             socket.on('connect', function() {
                 $('#statusIndicator').removeClass('disconnected').addClass('connected');
                 $('#connectionStatus').text('Connected');
+                
+                // Emit an event to request data immediately after connecting
+                socket.emit('fetch_initial_data');
             });
-
+    
             socket.on('disconnect', function() {
                 $('#statusIndicator').removeClass('connected').addClass('disconnected');
                 $('#connectionStatus').text('Disconnected');
             });
-
+    
             socket.on('my_response', function(msg, cb) {
-                var table = $('#log').DataTable();
                 table.clear().draw();
                 msg.data.forEach(function(row) {
                     table.row.add(row).draw();
                 });
-
+    
                 if (cb)
                     cb();
             });
+    
+            // Listen for an event sent by the server upon connection
+            socket.on('initial_data', function(data) {
+                if (data) {
+                    table.clear().draw();
+                    data.forEach(function(row) {
+                        table.row.add(row).draw();
+                    });
+                }
+            });
         });
-    </script>
+    </script>    
 </body>
 </html>

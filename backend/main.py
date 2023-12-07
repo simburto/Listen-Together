@@ -14,6 +14,7 @@ prevpos = 0
 returncode = 0 #return code indicates what processes need to take place
 con = sqlite3.connect("host.db", check_same_thread=False)
 cur = con.cursor()
+freshtoken = None
 
 load_dotenv()
 client_id = env('SPOTIFY_ID')
@@ -26,7 +27,7 @@ spd = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
 
 def refreshtoken(refresh_token):
     spotify_oauth = spotipy.oauth2.SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
-    spotify_oauth.refresh_access_token(refresh_token=refresh_token)
+    freshtoken = spotify_oauth.refresh_access_token(refresh_token=refresh_token)
 
 #spotify host and client logic
 class spotify():
@@ -52,7 +53,10 @@ class spotify():
             returncode = [0]
             return returncode    
     def client(roomcode, trackname, artistname, position_ms, playstate, spu, refreshtoken):# if spotify is client
-        refreshtoken(refreshtoken)
+        if freshtoken == None:
+            refreshtoken(refreshtoken)
+        else:
+            refreshtoken(freshtoken)
         if playstate == True:
             #combines artistname and trackname to get most accurate search result
             search_term = f"artist:" + artistname + " track:" + trackname
@@ -109,7 +113,10 @@ class youtube():
 # main logic
 def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info, refresh_token):
     roomcode = int(roomcode)
-    refreshtoken(refresh_token)
+    if freshtoken == None:
+        refreshtoken(refresh_token)
+    else:
+        refreshtoken(freshtoken)
     cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, 0, None, None, 0))
     con.commit()
     while True:

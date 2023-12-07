@@ -6,6 +6,7 @@ import requests
 from ytmusicapi import YTMusic
 import sqlite3
 from time import sleep
+import base64
 
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 #constants
@@ -14,7 +15,6 @@ prevpos = 0
 returncode = 0 #return code indicates what processes need to take place
 con = sqlite3.connect("host.db", check_same_thread=False)
 cur = con.cursor()
-freshtoken = None
 
 load_dotenv()
 client_id = env('SPOTIFY_ID')
@@ -26,9 +26,19 @@ client_credentials_manager = oauth2.SpotifyClientCredentials(client_id=client_id
 spd = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
 
 def refreshtoken(refresh_token):
-    spotify_oauth = spotipy.oauth2.SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
-    freshtoken = spotify_oauth.refresh_access_token(refresh_token=refresh_token)
-
+    global freshtoken
+    authorization = base64.b64encode((client_id + ":" + client_secret).encode("ascii")).decode("ascii")
+    url = 'https://accounts.spotify.com/api/token'
+    data = {
+    "grant_type": "refresh_token",
+    "refresh_token": refresh_token,
+    }
+    headers = {
+    "Authorization": "Basic " + authorization,
+    "Content-Type": "application/x-www-form-urlencoded"
+    }
+    response = requests.post(url=url, data=data, headers=headers).json()['access_token']
+    return response
 #spotify host and client logic
 class spotify():
     def host(spu):#if spotify client is hosting
@@ -52,11 +62,9 @@ class spotify():
         except:
             returncode = [0]
             return returncode    
-    def client(roomcode, trackname, artistname, position_ms, playstate, spu, refreshtoken):# if spotify is client
-        if freshtoken == None:
-            refreshtoken(refreshtoken)
-        else:
-            refreshtoken(freshtoken)
+    def client(roomcode, trackname, artistname, position_ms, playstate, refresh_token):# if spotify is client
+        token_info = refreshtoken(refresh_token)
+        spu = spotipy.Spotify(auth=token_info)
         if playstate == True:
             #combines artistname and trackname to get most accurate search result
             search_term = f"artist:" + artistname + " track:" + trackname
@@ -111,63 +119,56 @@ class youtube():
         songID = youtube.getEmbed(artist, name, ytmusic)
         return songID
 # main logic
-def main(roomcode, spmode, ytmode, ytpassword, ytip, token_info, refresh_token):
+def main(roomcode, spmode, ytmode, ytpassword, ytip, refresh_token):
     roomcode = int(roomcode)
-    if freshtoken == None:
-        refreshtoken(refresh_token)
-    else:
-        refreshtoken(freshtoken)
     cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, 0, None, None, 0))
     con.commit()
     while True:
         spmode = int(spmode)
         ytmode = int(ytmode)
-        try:
-            if spmode == 1: # if spotify is hosting
-                spu = spotipy.Spotify(auth=token_info)
-                output = spotify.host(spu)
-                if output[0] == 0: 
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
-                    con.commit()
-                elif output[0] == 1:
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
-                    con.commit()
-                elif output[0] == 2:
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
-                    con.commit()
-                elif output[0] == 3:
-                    trackname = output[1]
-                    artistname = output[2]
-                    position_ms = output[3]
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
-                    con.commit()
-            elif ytmode == 1: # if youtube is hosting
-                output = youtube.host(roomcode, ytpassword, ytip)
-                #check returncodes
-                if output[0] == 0: 
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
-                    con.commit()
-                elif output[0] == 1:
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
-                    con.commit()
-                elif output[0] == 2:
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
-                    con.commit()
-                elif output[0] == 3:
-                    trackname = output[1]
-                    artistname = output[2]
-                    position_ms = output[3]
-                    cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                    cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
-                    con.commit()
-            sleep(1)
-        except spotipy.SpotifyOauthError as e: # Refresh access token
-            token = spu.refresh_access_token()
-            spu = spotipy.Spotify(auth=token) 
+        if spmode == 1: # if spotify is hosting
+            token_info = refreshtoken(refresh_token)
+            spu = spotipy.Spotify(auth=token_info)
+            output = spotify.host(spu)
+            if output[0] == 0: 
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                con.commit()
+            elif output[0] == 1:
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                con.commit()
+            elif output[0] == 2:
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                con.commit()
+            elif output[0] == 3:
+                trackname = output[1]
+                artistname = output[2]
+                position_ms = output[3]
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
+                con.commit()
+        elif ytmode == 1: # if youtube is hosting
+            output = youtube.host(roomcode, ytpassword, ytip)
+            #check returncodes
+            if output[0] == 0: 
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                con.commit()
+            elif output[0] == 1:
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                con.commit()
+            elif output[0] == 2:
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
+                con.commit()
+            elif output[0] == 3:
+                trackname = output[1]
+                artistname = output[2]
+                position_ms = output[3]
+                cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
+                con.commit()
+        sleep(1)

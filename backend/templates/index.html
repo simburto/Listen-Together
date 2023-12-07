@@ -54,6 +54,24 @@
                 "columnDefs": [{
                     "targets": 0,
                     "orderable": true
+                }],
+                "columnDefs": [{
+                    "targets": 1, // Playstate column index
+                    "render": function(data, type, row) {
+                        // Map numerical values to descriptions
+                        switch (data) {
+                            case 0:
+                                return 'Nothing playing';
+                            case 1:
+                                return 'Paused';
+                            case 2:
+                                return 'Advertisement';
+                            case 3:
+                                return 'Song playing';
+                            default:
+                                return 'Unknown';
+                        }
+                    }
                 }]
             });
     

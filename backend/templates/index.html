@@ -101,11 +101,21 @@
                 });
         
                 socket.on('my_response', function(msg, cb) {
-                    table.clear().draw();
-                    msg.data.forEach(function(row) {
-                        table.row.add(row).draw();
-                    });
-        
+                    table.clear().draw(); // Clear the existing table data
+                    // Add new rows
+                    if (Array.isArray(msg.data)) {
+                        msg.data.forEach(function(row) {
+                            table.row.add(row).draw();
+                        });
+                    } else {
+                        console.error('Received data is not an array:', msg.data);
+                    }
+
+                    if (cb)
+                        cb();
+                });
+
+
                     if (cb)
                         cb();
                 });
@@ -119,7 +129,6 @@
                         });
                     }
                 });
-            });
         </script>    
     </body>
     </html>

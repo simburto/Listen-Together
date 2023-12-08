@@ -7,7 +7,6 @@ from ytmusicapi import YTMusic
 import sqlite3
 from time import sleep
 import base64
-from datetime import datetime, timedelta
 
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 #constants
@@ -133,43 +132,43 @@ def main(roomcode, spmode, ytmode, ytpassword, ytip, refresh_token):
             output = spotify.host(spu)
             if output[0] == 0: 
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], None, None, 0, datetime.now()))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                 con.commit()
             elif output[0] == 1:
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], None, None, 0, datetime.now()))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                 con.commit()
             elif output[0] == 2:
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], None, None, 0, None))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                 con.commit()
             elif output[0] == 3:
                 trackname = output[1]
                 artistname = output[2]
                 position_ms = output[3]
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms, datetime.now()))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
                 con.commit()
         elif ytmode == 1: # if youtube is hosting
             output = youtube.host(roomcode, ytpassword, ytip)
             #check returncodes
             if output[0] == 0: 
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], None, None, 0, datetime.now()))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                 con.commit()
             elif output[0] == 1:
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], None, None, 0, None))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                 con.commit()
             elif output[0] == 2:
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], None, None, 0, None))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], None, None, 0))
                 con.commit()
             elif output[0] == 3:
                 trackname = output[1]
                 artistname = output[2]
                 position_ms = output[3]
                 cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms, None))
+                cur.execute("INSERT INTO room VALUES (?,?,?,?,?)", (roomcode, output[0], trackname, artistname, position_ms))
                 con.commit()
         sleep(1)

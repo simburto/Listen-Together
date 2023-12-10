@@ -1,9 +1,5 @@
-x spotify user auth
-x spotify hosting
-x spotify client
-x youtube hosting
-x youtube client (web mediaplayer)
-x sqlite
+- backend
+    x sqlite
     x route for host 
         x receive request to create new room
         x send id/password
@@ -11,10 +7,15 @@ x sqlite
     x route for client
         x send id/password (127.0.0.1:5000)
         x get info from room
+    x spotify hosting
+    x spotify client
+    x youtube hosting
+    - idle detection and disconnection
 - testing
 - website
     - frontend
+        x spotify user auth
+        x youtube client (web mediaplayer)
         - spotify refresh token
         - api calls
-        - disconnect and remove instance when host closes tab
 - hosting

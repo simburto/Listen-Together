@@ -16,6 +16,6 @@
     - frontend
         x spotify user auth
         x youtube client (web mediaplayer)
-        - spotify refresh token
+        x spotify refresh token
         - api calls
 - hosting

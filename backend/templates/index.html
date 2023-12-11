@@ -1,126 +1,129 @@
-<div id="page1" class="page">
-    <!DOCTYPE HTML>
-    <html>
-    <head>
-        <title>Listen Together Control Panel</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
-        <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-        <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 20px;
-            }
-            #log {
-                margin-top: 20px;
-            }
-            .status-light {
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                display: inline-block;
-                margin-right: 5px;
-            }
-            .connected {
-                background-color: green;
-            }
-            .disconnected {
-                background-color: red;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Listen Together Control Panel</h1>
-        <div id="statusIndicator" class="status-light disconnected"></div>
-        <span id="connectionStatus">Disconnected</span>
-        <table id="log" class="display">
-            <thead>
-                <tr>
-                    <th>Roomcode</th>
-                    <th>Playstate</th>
-                    <th>Song</th>
-                    <th>Artist</th>
-                    <th>Position</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-        
-        <script type="text/javascript" charset="utf-8">
-            $(document).ready(function() {
-                var socket = io();
-                var table = $('#log').DataTable({
-                    "columnDefs": [
-                        {
-                            "targets": 0,
-                            "orderable": true
-                        },
-                        {
-                            "targets": 1, // Playstate column index
-                            "render": function(data, type, row) {
-                                // Map numerical values to descriptions
-                                switch (data) {
-                                    case 0:
-                                        return 'Nothing playing';
-                                    case 1:
-                                        return 'Paused';
-                                    case 2:
-                                        return 'Advertisement';
-                                    case 3:
-                                        return 'Song playing';
-                                    default:
-                                        return 'Unknown';
-                                }
-                            }
-                        },
-                        {
-                            "targets": 4, // Position (ms) column index
-                            "render": function(data, type, row) {
-                                // Convert milliseconds to minute:second format
-                                var minutes = Math.floor(data / 60000);
-                                var seconds = ((data % 60000) / 1000).toFixed(0);
-                                return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Listen Together Control Panel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #log {
+            margin-top: 20px;
+        }
+        .status-light {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .connected {
+            background-color: green;
+        }
+        .disconnected {
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Listen Together Control Panel</h1>
+    <div id="statusIndicator" class="status-light disconnected"></div>
+    <span id="connectionStatus">Disconnected</span>
+    <table id="log" class="display">
+        <thead>
+            <tr>
+                <th>Roomcode</th>
+                <th>Playstate</th>
+                <th>Song</th>
+                <th>Artist</th>
+                <th>Position</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            var socket = io();
+            var table = $('#log').DataTable({
+                "columnDefs": [
+                    {
+                        "targets": 0,
+                        "orderable": true
+                    },
+                    {
+                        "targets": 1, // Playstate column index
+                        "render": function(data, type, row) {
+                            // Map numerical values to descriptions
+                            switch (data) {
+                                case 0:
+                                    return 'Nothing playing';
+                                case 1:
+                                    return 'Paused';
+                                case 2:
+                                    return 'Advertisement';
+                                case 3:
+                                    return 'Song playing';
+                                default:
+                                    return 'Unknown';
                             }
                         }
-                    ]
-                });
-        
-                socket.on('connect', function() {
-                    $('#statusIndicator').removeClass('disconnected').addClass('connected');
-                    $('#connectionStatus').text('Connected');
-                    
-                    // Emit an event to request data immediately after connecting
-                    socket.emit('fetch_initial_data');
-                });
-        
-                socket.on('disconnect', function() {
-                    $('#statusIndicator').removeClass('connected').addClass('disconnected');
-                    $('#connectionStatus').text('Disconnected');
-                });
-        
-                socket.on('my_response', function(msg, cb) {
-                    table.clear().draw();
+                    },
+                    {
+                        "targets": 4, // Position (ms) column index
+                        "render": function(data, type, row) {
+                            // Convert milliseconds to minute:second format
+                            var minutes = Math.floor(data / 60000);
+                            var seconds = ((data % 60000) / 1000).toFixed(0);
+                            return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+                        }
+                    }
+                ]
+            });
+    
+            socket.on('connect', function() {
+                $('#statusIndicator').removeClass('disconnected').addClass('connected');
+                $('#connectionStatus').text('Connected');
+                
+                // Emit an event to request data immediately after connecting
+                socket.emit('fetch_initial_data');
+            });
+    
+            socket.on('disconnect', function() {
+                $('#statusIndicator').removeClass('connected').addClass('disconnected');
+                $('#connectionStatus').text('Disconnected');
+            });
+    
+            socket.on('my_response', function(msg, cb) {
+                table.clear().draw(); // Clear the existing table data
+                // Add new rows
+                if (Array.isArray(msg.data)) {
                     msg.data.forEach(function(row) {
                         table.row.add(row).draw();
                     });
-        
-                    if (cb)
-                        cb();
-                });
-        
-                // Listen for an event sent by the server upon connection
-                socket.on('initial_data', function(data) {
-                    if (data) {
-                        table.clear().draw();
-                        data.forEach(function(row) {
-                            table.row.add(row).draw();
-                        });
-                    }
-                });
+                } else {
+                    console.error('Received data is not an array:', msg.data);
+                }
+
+                if (cb)
+                    cb();
             });
-        </script>    
-    </body>
-    </html>
-    </div>
+    
+            // Listen for an event sent by the server upon connection
+            socket.on('initial_data', function(data) {
+                if (data) {
+                    table.clear().draw();
+                    data.forEach(function(row) {
+                        table.row.add(row).draw();
+                    });
+                }
+            });
+        })
+    </script>    
+</body>
+</html>

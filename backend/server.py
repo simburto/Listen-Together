@@ -210,8 +210,8 @@ def connect():
     con.close()
     emit('initial_data', data)
 
-def watchdog():
-    while True:
-        
+#def watchdog():
+ #   while True:
+
 if __name__ == '__main__':
     socketio.run(app)

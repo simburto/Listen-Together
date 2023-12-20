@@ -7,6 +7,7 @@ from ytmusicapi import YTMusic
 import sqlite3
 from time import sleep
 import base64
+import datetime
 
 #mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
 #constants

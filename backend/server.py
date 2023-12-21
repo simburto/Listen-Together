@@ -2,11 +2,12 @@ from flask import Flask, redirect, session, render_template
 from random import randint
 from multiprocessing import Process
 import main
-import spotipy
 from os import getenv as env
 import sqlite3
 from threading import Lock
 from flask_socketio import SocketIO, emit
+from datetime import datetime
+from time import sleep
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
 # mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
@@ -24,49 +25,30 @@ thread_lock = Lock()
 con = sqlite3.connect("host.db", check_same_thread=False)
 cur = con.cursor()
 try:
-    cur.execute("CREATE TABLE room(roomcode INT, returncode, trackname, artistname, position_ms)")
+    cur.execute("CREATE TABLE room(roomcode INT, returncode, trackname, artistname, position_ms, timeout)")
     con.commit()
 except sqlite3.OperationalError:
     cur.execute("DROP TABLE room")
-    cur.execute("CREATE TABLE room(roomcode INT, returncode, trackname, artistname, position_ms)")
+    cur.execute("CREATE TABLE room(roomcode INT, returncode, trackname, artistname, position_ms, timeout)")
     con.commit()
-con.close()
+cur.close()
 roomcodes = []
 rooms = []
-
-def disconnect(roomcode):
-    try:
-        con = sqlite3.connect("host.db", check_same_thread=False)
-        cur = con.cursor()
-        cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-        con.commit()
-        con.close()
-
-        if roomcode in roomcodes:
+def dc(roomcode):
+    con = sqlite3.connect("host.db", check_same_thread=False)
+    cur = con.cursor()
+    cur.execute("DELETE FROM room WHERE roomcode=?", (roomcode,))
+    con.commit()
+    cur.close()
+    con.close()
+    # Removing instance from rooms array
+    if roomcode in roomcodes:
             i = roomcodes.index(roomcode)
             if i < len(rooms) and rooms[i] is not None:
                 rooms[i].terminate()
                 rooms[i].join()  # Wait for process termination
                 del rooms[i]
                 roomcodes.remove(roomcode)
-
-        return {
-            'disconnected': True
-        }
-    except Exception as e:
-        return f"Error: {str(e)}", 500
-    finally:
-        # Refresh the database data here
-        con = sqlite3.connect("host.db", check_same_thread=False)
-        cur = con.cursor()
-        data = cur.execute("SELECT * FROM room").fetchall()
-        con.close()
-        # Update rooms and roomcodes list based on refreshed data
-        rooms.clear()
-        roomcodes.clear()
-        for row in data:
-            roomcodes.append(row[0])  # Assuming roomcode is in the first position of the row
-
 @app.route('/') # initial route
 def index():
     return redirect('https://shockingbravecores.simburrito.repl.co/')
@@ -106,7 +88,7 @@ def sproom(roomcode, refresh_token):
             con = sqlite3.connect("host.db", check_same_thread=False)
             cur = con.cursor()
             (roomid, status, trackname, artistname, position_ms) = cur.execute("SELECT * FROM room WHERE roomcode =?", (roomcode,)).fetchone()
-            con.close()
+            cur.close()
             status = int(status)
             #check returncodes
             if status == 0: 
@@ -140,7 +122,7 @@ def ytroom(roomcode):
             con = sqlite3.connect("host.db", check_same_thread=False)
             cur = con.cursor()
             (roomid, status, trackname, artistname, position_ms) = cur.execute("SELECT * FROM room WHERE roomcode =?", (roomcode,)).fetchone()
-            con.close()
+            cur.close()
             status = int(status)
             # Check return codes
             if status == 0:
@@ -172,7 +154,7 @@ def disconnect(roomcode, authkey):
     roomcode = int(roomcode)
     if roomcode not in roomcodes:
         return "Room not found", 404
-    return(disconnect(roomcode))
+    return(dc(roomcode))
 
 def background_thread():
     data = []
@@ -182,7 +164,7 @@ def background_thread():
         con = sqlite3.connect('host.db', check_same_thread=False)
         cur = con.cursor()
         data = cur.execute('SELECT * FROM room').fetchall()
-        con.close()
+        cur.close()
         if data != prevdata:
             prevdata = data
             socketio.emit('my_response',
@@ -207,12 +189,22 @@ def connect():
     con = sqlite3.connect('host.db', check_same_thread=False)
     cur = con.cursor()
     data = cur.execute('SELECT * FROM room').fetchall()
-    con.close()
+    cur.close()
     emit('initial_data', data)
 
 def watchdog():
     while True:
-        
+        sleep(10)
+        con = sqlite3.connect('host.db', check_same_thread=False)
+        cur = con.cursor()
+        output = cur.execute("SELECT * FROM room WHERE timeout=1").fetchall()
+        cur.close()
+        con.close()
+        for i in range(len(output)):
+            roomcode = output[i][0]
+            dc(int(roomcode))
 
 if __name__ == '__main__':
+    wd = Process(target=watchdog)
+    wd.start()
     socketio.run(app)

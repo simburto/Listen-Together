@@ -34,6 +34,39 @@ con.close()
 roomcodes = []
 rooms = []
 
+def disconnect(roomcode):
+    try:
+        con = sqlite3.connect("host.db", check_same_thread=False)
+        cur = con.cursor()
+        cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
+        con.commit()
+        con.close()
+
+        if roomcode in roomcodes:
+            i = roomcodes.index(roomcode)
+            if i < len(rooms) and rooms[i] is not None:
+                rooms[i].terminate()
+                rooms[i].join()  # Wait for process termination
+                del rooms[i]
+                roomcodes.remove(roomcode)
+
+        return {
+            'disconnected': True
+        }
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+    finally:
+        # Refresh the database data here
+        con = sqlite3.connect("host.db", check_same_thread=False)
+        cur = con.cursor()
+        data = cur.execute("SELECT * FROM room").fetchall()
+        con.close()
+        # Update rooms and roomcodes list based on refreshed data
+        rooms.clear()
+        roomcodes.clear()
+        for row in data:
+            roomcodes.append(row[0])  # Assuming roomcode is in the first position of the row
+
 @app.route('/') # initial route
 def index():
     return redirect('https://shockingbravecores.simburrito.repl.co/')
@@ -139,38 +172,7 @@ def disconnect(roomcode, authkey):
     roomcode = int(roomcode)
     if roomcode not in roomcodes:
         return "Room not found", 404
-
-    try:
-        con = sqlite3.connect("host.db", check_same_thread=False)
-        cur = con.cursor()
-        cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
-        con.commit()
-        con.close()
-
-        if roomcode in roomcodes:
-            i = roomcodes.index(roomcode)
-            if i < len(rooms) and rooms[i] is not None:
-                rooms[i].terminate()
-                rooms[i].join()  # Wait for process termination
-                del rooms[i]
-                roomcodes.remove(roomcode)
-
-        return {
-            'disconnected': True
-        }
-    except Exception as e:
-        return f"Error: {str(e)}", 500
-    finally:
-        # Refresh the database data here
-        con = sqlite3.connect("host.db", check_same_thread=False)
-        cur = con.cursor()
-        data = cur.execute("SELECT * FROM room").fetchall()
-        con.close()
-        # Update rooms and roomcodes list based on refreshed data
-        rooms.clear()
-        roomcodes.clear()
-        for row in data:
-            roomcodes.append(row[0])  # Assuming roomcode is in the first position of the row
+    return(disconnect(roomcode))
 
 def background_thread():
     data = []
@@ -207,6 +209,9 @@ def connect():
     data = cur.execute('SELECT * FROM room').fetchall()
     con.close()
     emit('initial_data', data)
+
+#def watchdog():
+ #   while True:
 
 if __name__ == '__main__':
     socketio.run(app)

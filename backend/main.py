@@ -52,7 +52,7 @@ def checkAFK(prevtime, roomcode, output):
         prevtime = datetime.now()
         return prevtime
     timedelta = (datetime.now() - prevtime).seconds
-    if timedelta > 10:
+    if timedelta > 300:
         cur.execute("DELETE FROM room WHERE roomcode =?", (roomcode,))
         cur.execute("INSERT INTO room VALUES (?,?,?,?,?,?)", (roomcode, output[0], None, None, 0, 1))
         con.commit()

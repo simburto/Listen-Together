@@ -1,0 +1,25 @@
+.title {
+    display : flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.title h1 {
+    font-size: 24px;
+}
+
+.toggleButtons {
+    display: flex;
+}
+
+.selectedSpotify {
+    background-color: green;
+    color: white;
+}
+
+.selectedYoutubeMusic {
+    background-color: red;
+    color: white;
+}

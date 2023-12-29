@@ -15,3 +15,8 @@ SPOTIFY_CLIENT_SECRET=
 * User modify playback state
 * User read currently playing
 * User read playback state
+
+## Starting the frontend server
+Ensure port 3000 is open on the local machine.
+Run `npm install` in the `/frontend` directory to install dependencies.
+Run `npm run dev`.

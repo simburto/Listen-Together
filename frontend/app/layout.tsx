@@ -1,28 +1,29 @@
-import "./globals.css"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import Footer from "@/components/footer"
-import Header from "@/components/header"
+import { authOptions } from '@/pages/api/auth/[...nextauth]'
+import type { Metadata } from 'next'
+import { getServerSession } from 'next-auth'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import AuthProvider from './SessionProvider'
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "NextAuth.js Example",
-  description:
-    "This is an example site to demonstrate how to use NextAuth.js for authentication",
+  title: 'Listen Together',
+  description: 'Listen together across multiple streaming platforms!',
 }
 
-export default function RootLayout({ children }: React.PropsWithChildren) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="flex flex-col justify-between w-full h-full min-h-screen">
-          <Header />
-          <main className="flex-auto w-full max-w-3xl px-4 py-4 mx-auto sm:px-6 md:py-6">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <AuthProvider session={session}>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

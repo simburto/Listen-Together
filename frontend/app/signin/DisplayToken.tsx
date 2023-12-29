@@ -5,9 +5,9 @@ import { useSession } from 'next-auth/react';
 export default function DisplayToken() {
     const session = useSession();
     // @ts-ignore
-    const accessToken = session?.data?.accessToken
+    const refreshToken = session?.data?.refreshToken
   
     return (
-        <div>{accessToken}</div>
+        <div className="text-wrap">Refresh Token: {refreshToken}</div>
     );
 }

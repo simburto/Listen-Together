@@ -1,4 +1,5 @@
-from flask import Flask, redirect, session, render_template
+from flask import Flask, redirect, session, render_template, jsonify
+from flask_cors import CORS
 from random import randint
 from multiprocessing import Process
 import main
@@ -16,6 +17,7 @@ client_secret = env('SPOTIFY_SECRET')
 sqlitekey = env('SQLITE_KEY')
 redirect_uri = env('redirect_uri')
 app = Flask(__name__)
+CORS(app)
 async_mode = None
 socketio = SocketIO(app, async_mode=async_mode)
 thread = None
@@ -53,7 +55,7 @@ def dc(roomcode):
 def index():
     return redirect('https://shockingbravecores.simburrito.repl.co/')
 
-@app.route('/hostroom/<spmode>/<ytmode>/<ytpassword>/<ytip>/<refresh_token>')  # host room
+@app.route('/hostroom/<spmode>/<ytmode>/<ytpassword>/<ytip>/<refresh_token>', methods=['GET'])  # host room
 def hostroom(spmode, ytmode, ytpassword, ytip, refresh_token):
     roomcode = randint(11111111,99999999) # generate roomcode
     roomcodevalid = False
@@ -73,10 +75,10 @@ def hostroom(spmode, ytmode, ytpassword, ytip, refresh_token):
     roomcodes.append(roomcode) # add roomcode to roomcodes list
     rooms.append(instance)# Store the instance in the dictionary using the roomcode as the key
     instance.start()  # Start the process
-    return {
+    return jsonify({
         'isHosting': True,
         'roomcode': roomcode,
-    }
+    })
 
 @app.route('/spotify/<roomcode>/<refresh_token>') # spotify enter room
 def sproom(roomcode, refresh_token):
@@ -207,4 +209,4 @@ def watchdog():
 if __name__ == '__main__':
     wd = Process(target=watchdog)
     wd.start()
-    socketio.run(app)
+    socketio.run(app, port=8080, debug=True)

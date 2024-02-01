@@ -1,4 +1,4 @@
-from flask import Flask, redirect, session, render_template, jsonify, abort
+from flask import Flask, redirect, render_template, jsonify
 from flask_cors import CORS
 from random import randint
 from multiprocessing import Process
@@ -7,7 +7,6 @@ from os import getenv as env
 import sqlite3
 from threading import Lock
 from flask_socketio import SocketIO, emit
-from datetime import datetime
 from time import sleep
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
@@ -211,4 +210,4 @@ def watchdog():
 if __name__ == '__main__':
     wd = Process(target=watchdog)
     wd.start()
-    socketio.run(app, port=8080, debug=True)
+    socketio.run(app, port=8080, debug=True, allow_unsafe_werkzeug=True)

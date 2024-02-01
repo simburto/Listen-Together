@@ -83,8 +83,9 @@ class spotify():
         #if user client is open and hasn't played something yet or user client is closed
         except:
             returncode = [0]
-            return returncode    
+            return returncode
     def client(roomcode, trackname, artistname, position_ms, playstate, refresh_token):# if spotify is client
+        # TODO: 'roomcode' is never used here
         token_info = refreshtoken(refresh_token)
         spu = spotipy.Spotify(auth=token_info)
         if playstate == True:
@@ -92,7 +93,7 @@ class spotify():
             search_term = f"artist:" + artistname + " track:" + trackname
             trackid = []
             #searches spotify for type 'track' using searchterm 
-            track = spd.search(q=search_term, limit=1, offset = 0, type='track', market='CA') # returns dict
+            track = spd.search(q=search_term, limit=1, offset=0, type='track', market='CA') # returns dict
             #filter dict
             trackid = [track['tracks']['items'][0]['uri']]
             artistname = track['tracks']['items'][0]['artists'][0]['name']

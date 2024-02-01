@@ -1,4 +1,4 @@
-from flask import Flask, redirect, session, render_template, jsonify
+from flask import Flask, redirect, session, render_template, jsonify, abort
 from flask_cors import CORS
 from random import randint
 from multiprocessing import Process
@@ -129,7 +129,7 @@ def ytroom(roomcode):
             # Check return codes
             if status == 0:
                 return {
-                    'notUsingService': True
+                    'usingService': False 
                 }
             elif status == 1:
                 return {
@@ -140,9 +140,11 @@ def ytroom(roomcode):
                     'isAdvertisement': True
                 }
             elif status == 3:
-                songid = main.youtube.client(trackname, artistname)
+                songid = main.youtube.getEmbed(artistname, trackname)
                 return {
+                    'usingService': True,
                     'isPaused': False,
+                    'isAdvertisement': False,
                     'songid': songid,
                     'position_ms': position_ms,
                 }

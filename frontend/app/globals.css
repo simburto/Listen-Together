@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -17,6 +17,8 @@
 }
 
 body {
+  font-family: "Futura", sans-serif, fallback;
+  font-size: 20px;
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
       to bottom,

@@ -105,8 +105,9 @@ class spotify():
             spu.pause_playback
             return 'Pause'
 class youtube():
-    def getEmbed(author, title, ytmusic):
-        search = ytmusic.search(author + title, filter="songs")
+    def getEmbed(artistname, trackname):
+        ytmusic = YTMusic()
+        search = ytmusic.search(artistname + trackname, filter="songs")
         songID = search[0]['videoId']
         return songID
     def host(roomcode, ytpassword, ytip): # if youtube client is hosting
@@ -136,10 +137,6 @@ class youtube():
             position_ms = output['player']['seekbarCurrentPosition']*1000
             returncode = 3
             return returncode, trackname, artistname, position_ms
-    def client(name, artist): # if youtube client is client
-        ytmusic = YTMusic()
-        songID = youtube.getEmbed(artist, name, ytmusic)
-        return songID
 # main logic
 def main(roomcode, spmode, ytmode, ytpassword, ytip, refresh_token):
     con = sqlite3.connect("host.db", check_same_thread=False)

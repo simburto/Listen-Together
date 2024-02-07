@@ -10,7 +10,7 @@ from flask_socketio import SocketIO, emit
 from time import sleep
 
 # return code guide: 0 = Nothing playing, 1 = Paused, 2 = Advertisement, 3 = Song playing
-# mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
+# mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = ytclient with (service)
 client_id = env('SPOTIFY_ID')
 client_secret = env('SPOTIFY_SECRET')
 sqlitekey = env('SQLITE_KEY')
@@ -54,7 +54,7 @@ def dc(roomcode):
 def index():
     return redirect('https://shockingbravecores.simburrito.repl.co/')
 
-@app.route('/hostroom/<spmode>/<ytmode>/<ytpassword>/<ytip>/<refresh_token>', methods=['GET'])  # host room
+@app.route('/hostroom/<spmode>/<ytmode>/<ytpassword>/<ytip>/<refresh_token>', methods=['GET'])  # ythost room
 def hostroom(spmode, ytmode, ytpassword, ytip, refresh_token):
     roomcode = randint(11111111,99999999) # generate roomcode
     roomcodevalid = False
@@ -113,7 +113,7 @@ def sproom(roomcode, refresh_token):
         except TypeError:
             pass
 
-@app.route('/youtube/<roomcode>') # youtube enter room
+@app.route('/youtube/<roomcode>') # youtube get song info
 def ytroom(roomcode):
     roomcode = int(roomcode)
     if roomcode not in roomcodes:
@@ -188,7 +188,7 @@ def connect():
             thread = socketio.start_background_task(background_thread)
     emit('my_response', {'data': 'Connected', 'count': 0})
 
-    # When a client connects, fetch and emit the initial data immediately
+    # When a ytclient connects, fetch and emit the initial data immediately
     con = sqlite3.connect('host.db', check_same_thread=False)
     cur = con.cursor()
     data = cur.execute('SELECT * FROM room').fetchall()

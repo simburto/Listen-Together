@@ -9,7 +9,7 @@ from time import sleep
 import base64
 from datetime import datetime
 
-#mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = client with (service)
+#mode code guide: 0 = not using (service), 1 = hosting with (service), 2 = ytclient with (service)
 #constants
 prevpos = 0
 prevtime = None
@@ -61,16 +61,16 @@ def checkAFK(prevtime, roomcode, output):
         return 3
     else:
         return prevtime
-#spotify host and client logic
+#spotify ythost and ytclient logic
 class spotify():
-    def host(spu):#if spotify client is hosting
+    def host(spu):#if spotify ytclient is hosting
         #gets playing track
         track = spu.current_user_playing_track()
-        #if user client is open and was playing something
+        #if user ytclient is open and was playing something
         try:
             global prevpos
             position_ms = track['progress_ms']
-            #current_user_playing_track returns the same position if the song is paused returns nothing if the client is closed
+            #current_user_playing_track returns the same position if the song is paused returns nothing if the ytclient is closed
             if position_ms == prevpos:
                 returncode = [1]
                 return returncode
@@ -80,11 +80,11 @@ class spotify():
             prevpos = position_ms
             returncode = 3
             return returncode, trackname, artistname, position_ms
-        #if user client is open and hasn't played something yet or user client is closed
+        #if user ytclient is open and hasn't played something yet or user ytclient is closed
         except:
             returncode = [0]
             return returncode
-    def client(roomcode, trackname, artistname, position_ms, playstate, refresh_token):# if spotify is client
+    def client(roomcode, trackname, artistname, position_ms, playstate, refresh_token):# if spotify is ytclient
         # TODO: 'roomcode' is never used here
         token_info = refreshtoken(refresh_token)
         spu = spotipy.Spotify(auth=token_info)
@@ -111,10 +111,10 @@ class youtube():
         search = ytmusic.search(artistname + trackname, filter="songs")
         songID = search[0]['videoId']
         return songID
-    def host(roomcode, ytpassword, ytip): # if youtube client is hosting
+    def host(roomcode, ytpassword, ytip): # if youtube ytclient is hosting
         output = []
         while len(output) == 0: 
-            try: #tries to connect to local client
+            try: #tries to connect to local ytclient
                 if ytpassword != 0:
                     output = requests.get(url='http://' + ytip + ':9863/query', headers={f'Authorization': f'Bearer {ytpassword}'}).json()
                 else:

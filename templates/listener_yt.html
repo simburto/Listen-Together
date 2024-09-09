@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Listen Together</title>
+</head>
+    <body>
+    <p>Now playing: </p>
+    <p id="song"></p>
+    <br>
+    <p>Artist: </p>
+    <p id="artist"></p>
+</body>
+
+<script>
+    const roomcode = window.location.pathname.split('/')[3];
+
+    function updateNowPlaying() {
+        fetch(`http://127.0.0.1:5000/youtube/${roomcode}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("song").innerHTML = data.trackname;
+                document.getElementById("artist").innerHTML = data.artistname;
+            })
+            .catch(error => console.error("Error fetching song data: ", error));
+    }
+
+    setInterval(updateNowPlaying, 2000); // updates every 2000ms
+</script>
+</html>

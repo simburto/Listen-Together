@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Listen Together</title>
+</head>
+<body>
+
+<h2>Listen Together</h2>
+
+<form id="form">
+    <label for="roomcode">Roomcode:</label>
+    <input type="text" id="roomcode" name="roomcode" placeholder="Please Enter Your Roomcode"><br>
+    <br>
+
+    <!-- Radio buttons for which application -->
+    <input type="radio" id="yt" name="which_application" value="yt" onchange="showSpotifyOptions()">
+    <label for="yt">YT</label>
+
+    <input type="radio" id="spotify" name="which_application" value="Spotify" onchange="showSpotifyOptions()">
+    <label for="spotify">Spotify</label>
+    <br>
+
+    <!-- div to contain extra inputs for spotify -->
+    <div id="spotifyInputs" style="display: none;">
+        <p>spotify oauth work in progress</p>
+    </div>
+
+    <!-- Checkbox for if you're hosting or not -->
+    <br>
+    <input type="checkbox" id="hosting" name="hosting" value="Hosting" onchange="hostingChecked()">
+    <label for="hosting">Hosting?</label>
+    <br>
+
+    <!-- div for hidden yt hosting inputs -->
+    <div id="ytHostingInputs" style="display: none;">
+        <br>
+        <label for="ytIp">YTM Desktop IP</label>
+        <input type="text" id="ytIp">
+
+        <label for="ytPass">YTM Desktop Password (Optional)</label>
+        <input type="text" id="ytPass">
+    </div>
+
+    <br>
+    <input type="submit" value="Submit" onclick="routeUser()">
+</form>
+
+</body>
+
+<script>
+    function routeUser() {
+        event.preventDefault();
+        const form = document.getElementById("form");
+
+        // Get roomcode
+        const isHosting = document.getElementById("hosting").checked;
+        const joinRoomCode = document.getElementById("roomcode").value;
+        if (joinRoomCode.trim() === "" && !isHosting) { // if they're hosting, they don't need a roomcode
+            alert("Please enter a roomcode");
+            return; // If empty, display an error message and do nothing
+        }
+
+        // Get application
+        const application = form.elements['which_application'].value;
+        if (application.trim() === "") {
+            alert("Please select an application")
+            return;
+        }
+
+        // Route user based on what form options they've selected
+        let url = "http://127.0.0.1:5000/";
+        if (isHosting) {
+            url += "hostroom/";
+            if (application === "yt") { // yt host
+                const ytIp = document.getElementById("ytIp").value;
+                const ytPass = document.getElementById("ytPass").value;
+                url += `0/1/${ytIp}/${ytPass}/`;
+            } else { // spotify host
+                alert("spotify host wip");
+            }
+        } else { // yt client
+            url += "joinroom/";
+            if (application === "yt") {
+                url += "yt/";
+            } else { // spotify client
+                alert("spotify client wip")
+            }
+        }
+        url += "0"; // empty value for refresh token
+
+        let redirectUrl = "http://127.0.0.1:5000/client/";
+        console.log(url);
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const roomcode = data.roomcode;
+                redirectUrl += isHosting ? "host/" : "listener/";
+                redirectUrl += roomcode;
+                window.location.href = redirectUrl;
+            })
+            .catch(error => console.error("Error fetching room: ", error));
+    }
+
+    function showSpotifyOptions() {
+        hostingChecked(); // fixes bug when you check hosting while youtube is selected and then select spotify, the youtube host stuff remains
+
+        const spotifyIsSelected = document.getElementById("spotify").checked;
+        const spotifyInputs = document.getElementById("spotifyInputs");
+        if (spotifyIsSelected) {
+            spotifyInputs.style.display = "block"; // show additional options if spotify is selected
+        } else {
+            spotifyInputs.style.display = "none"; // hide additional options if spotify is not selected
+        }
+    }
+
+    function hostingChecked() {
+        const hostingIsChecked = document.getElementById("hosting").checked;
+        const ytIsSelected = document.getElementById("yt").checked;
+        const ytHostingInputs = document.getElementById("ytHostingInputs");
+        if (hostingIsChecked && ytIsSelected) {
+            ytHostingInputs.style.display = "block";
+        } else {
+            ytHostingInputs.style.display = "none";
+        }
+    }
+</script>
+</html>
+

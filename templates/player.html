@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Listen Together</title>
+</head>
+
+<body>
+<div id="player"></div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+    // Initialise player
+    var player;
+    var search = 'PkWWMUkEfh8'; // Default video ID
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            videoId: search,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0,
+                'start': 0,
+            },
+            events: {
+                'onReady': onPlayerReady,
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+    }
+
+    // Functions for pausing, playing, and changing video
+    function pauseVideo() {
+        if (player && player.pauseVideo) {
+            player.pauseVideo();
+        }
+    }
+
+    function playVideo() {
+        if (player && player.playVideo) {
+            player.playVideo();
+        }
+    }
+
+    function changeVideo(videoId) {
+        if (player && player.loadVideoById) {
+            player.loadVideoById(videoId);
+        }
+    }
+
+    function searchYoutube() {
+        var query = document.getElementById('Search YouTube').value;
+        fetch('/getVideoId/' + query)
+            .then(response => response.json())
+            .then(data => {
+                changeVideo(data.videoId);
+            })
+            .catch(error => {
+                console.error('Error getting videoId JSON', error);
+            });
+    }
+</script>
+
+<script>
+    // Script for fetching song data
+    const roomcode = window.location.pathname.split('/')[3];
+
+    let currentVideoId;
+    function updateNowPlaying() {
+        fetch(`http://127.0.0.1:5000/youtube/${roomcode}`)
+            .then(response => response.json())
+            .then(data => {
+                const timeDiscrepancyMs = Math.abs(data.position_ms - player.getCurrentTime() * 1000); // getCurrentTime() returns in seconds
+                if (currentVideoId !== data.songid) {
+                    currentVideoId = data.songid;
+                    changeVideo(data.songid);
+                }
+                if (timeDiscrepancyMs > 5000) {
+                    player.seekTo(data.position_ms / 1000, true);
+                }
+            })
+            .catch(error => console.error("Error fetching song data: ", error));
+    }
+
+    setInterval(updateNowPlaying, 2000); // updates every 2000ms
+</script>
+
+</body>
+</html>

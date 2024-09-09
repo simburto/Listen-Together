@@ -1,5 +1,0 @@
-spotipy
-dotenv
-ytmusicapi
-flask
-multiprocessing

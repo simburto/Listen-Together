@@ -1,21 +1,5 @@
-- backend
-    x sqlite
-    x route for host 
-        x receive request to create new room
-        x send id/password
-        x receive song data
-    x route for client
-        x send id/password (127.0.0.1:5000)
-        x get info from room
-    x spotify hosting
-    x spotify client
-    x youtube hosting
-    - idle detection and disconnection
-- testing
-- website
-    - frontend
-        x spotify user auth
-        x youtube client (web mediaplayer)
-        x spotify refresh token
-        - api calls
-- hosting
+(DONE) 1. Create landing page (index.html)
+2. Create basic HTML page for ytm and spotify host
+3. Create basic HTML page for spotify client
+4. Create frontend logic for steps 2 and 3
+5. Test and deploy

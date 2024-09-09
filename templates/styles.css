@@ -1,0 +1,63 @@
+body {
+    background-color: #1d2021; /* Dark grey */
+    color: #ebdbb2; /* White */
+    font-family: "JetBrains Mono", monospace;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    margin: 0; /* Remove default margin */
+    height: 100vh; /* Ensure the body takes full height */
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center; /* Vertical centering */
+}
+
+p {
+    color: #ebdbb2;
+    font-size: 16px;
+}
+
+h1 {
+    color: #ebdbb2;
+    font-size: 20px;
+}
+
+input {
+    outline: none;
+    background-color: #3c3836;
+    color: #ebdbb2;
+    font-size: 16px;
+    border-radius: 6px;
+}
+
+.centre-div {
+    background-color: #3c3836;
+    border-radius: 10px;
+    display: flex;
+    justify-content: flex-start;
+    text-align: center; /* Centers text inside the div */
+}
+
+.centre-div-uncoloured {
+    border-radius: 10px;
+    display: flex;
+    justify-content: flex-start;
+    text-align: center; /* Centers text inside the div */
+}
+
+.left-div {
+    width: 220px;
+    height: 220px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.right-div {
+    width: 220px;
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

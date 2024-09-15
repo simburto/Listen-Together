@@ -14,7 +14,7 @@ spd = None
 spotify_id = None
 spotify_secret = None
 
-def authenticate_spotify() -> None:
+def authenticate_spotify_app() -> None:
     global spotify_id, spotify_secret
     load_dotenv()
     spotify_id = getenv('SPOTIFY_ID')
